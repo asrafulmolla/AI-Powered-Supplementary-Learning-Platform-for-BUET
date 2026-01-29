@@ -91,9 +91,9 @@
                         <h3 style="font-size: 1.2rem;">Generated Blueprint</h3>
                         <div style="display: flex; gap: 10px;">
                             <div id="validation-badge" class="badge" style="display: none;"></div>
-                            <button class="btn-icon" title="Copy to Clipboard"><i
+                            <button id="copy-btn" class="btn-icon" title="Copy to Clipboard"><i
                                     class="ri-clipboard-line"></i></button>
-                            <button class="btn-icon" title="Download Markdown"><i
+                            <button id="download-btn" class="btn-icon" title="Download Markdown"><i
                                     class="ri-download-2-line"></i></button>
                         </div>
                     </div>
@@ -201,6 +201,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const typeBtns = document.querySelectorAll('.type-btn');
         let selectedType = 'NOTE';
+        let currentContent = '';
 
         typeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -235,6 +236,7 @@
                 });
 
                 const data = await response.json();
+                currentContent = data.content;
 
                 // Format markdown-like content simply for demo
                 outputDiv.innerHTML = data.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
@@ -261,6 +263,33 @@
                 emptyState.style.display = 'flex';
                 alert('Connection error. Please check your Gemini API key configuration.');
             }
+        });
+
+        // Copy logic
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            if (!currentContent) return;
+            navigator.clipboard.writeText(currentContent).then(() => {
+                const icon = document.querySelector('#copy-btn i');
+                icon.className = 'ri-checkbox-circle-line';
+                setTimeout(() => {
+                    icon.className = 'ri-clipboard-line';
+                }, 2000);
+            });
+        });
+
+        // Download logic
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (!currentContent) return;
+            const blob = new Blob([currentContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const filename = document.getElementById('topic-input').value.replace(/\s+/g, '_') || 'blueprint';
+            a.href = url;
+            a.download = `${filename}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
     });
 </script>
