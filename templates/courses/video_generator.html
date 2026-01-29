@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
     <!-- Page Header -->
@@ -59,7 +63,11 @@
             </div>
             <button id="export-storyboard-btn" class="btn-primary"
                 style="background: white; color: var(--text-main); border: 2px solid #e2e8f0; box-shadow: none;">
-                <i class="ri-file-download-line"></i> Export Storyboard
+                <i class="ri-file-download-line"></i> Export TXT
+            </button>
+            <button id="export-pdf-btn" class="btn-primary"
+                style="background: white; color: var(--text-main); border: 2px solid #e2e8f0; box-shadow: none;">
+                <i class="ri-file-pdf-line"></i> Export PDF
             </button>
         </div>
 
@@ -225,6 +233,23 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        if (!lastGeneratedData) return;
+
+        const element = document.getElementById('scenes-container');
+        const filename = `${lastGeneratedData.title.replace(/\s+/g, '_')}_storyboard.pdf`;
+
+        const opt = {
+            margin: [15, 15],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
     });
 </script>
 {% endblock %}

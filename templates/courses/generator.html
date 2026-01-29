@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem;">
@@ -95,6 +99,8 @@
                                     class="ri-clipboard-line"></i></button>
                             <button id="download-btn" class="btn-icon" title="Download Markdown"><i
                                     class="ri-download-2-line"></i></button>
+                            <button id="download-pdf-btn" class="btn-icon" title="Download PDF"><i
+                                    class="ri-file-pdf-line"></i></button>
                         </div>
                     </div>
                     <div id="output-content"
@@ -290,6 +296,26 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        });
+
+        // Download PDF logic
+        document.getElementById('download-pdf-btn').addEventListener('click', () => {
+            if (!currentContent) return;
+
+            const element = document.getElementById('output-content');
+            const filename = (document.getElementById('topic-input').value.replace(/\s+/g, '_') || 'blueprint') + '.pdf';
+
+            // Temporary styling for PDF to ensure it looks premium
+            const opt = {
+                margin: [15, 15],
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generate and save PDF
+            html2pdf().set(opt).from(element).save();
         });
     });
 </script>
