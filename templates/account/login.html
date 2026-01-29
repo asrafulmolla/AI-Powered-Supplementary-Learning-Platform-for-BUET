@@ -45,10 +45,33 @@
                         style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot
                         password?</a>
                 </div>
-                <input type="password" name="password" placeholder="••••••••"
-                    style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
-                    required>
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password_input" placeholder="••••••••"
+                        style="width: 100%; padding: 0.8rem 3rem 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
+                        required>
+                    <button type="button" id="toggle_password"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="ri-eye-off-line" id="eye_icon"></i>
+                    </button>
+                </div>
             </div>
+
+            <script>
+                document.getElementById('toggle_password').addEventListener('click', function () {
+                    const passwordInput = document.getElementById('password_input');
+                    const eyeIcon = document.getElementById('eye_icon');
+
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        eyeIcon.classList.remove('ri-eye-off-line');
+                        eyeIcon.classList.add('ri-eye-line');
+                    } else {
+                        passwordInput.type = 'password';
+                        eyeIcon.classList.remove('ri-eye-line');
+                        eyeIcon.classList.add('ri-eye-off-line');
+                    }
+                });
+            </script>
 
             <button type="submit" class="btn-primary"
                 style="padding: 1rem; border-radius: 12px; font-size: 1rem; margin-top: 1rem;">

@@ -4,8 +4,9 @@
 <div class="header">
     <div class="page-title">Learning Dashboard</div>
     <div class="stats-container" style="display: flex; gap: 1rem; align-items: center;">
-        <span style="color: var(--text-muted); font-size: 0.9rem;">Welcome back, <b>Student</b></span>
-        <div class="badge" style="background: var(--primary); color: white;">Level 5 Explorer</div>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Welcome back, <b>
+                {{ user.get_role_display|default:user.username }}</b></span>
+        <div class="badge" style="background: var(--primary); color: white;">{{ user.username }}</div>
     </div>
 </div>
 

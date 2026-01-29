@@ -10,6 +10,8 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STUDENT')
     google_id = models.CharField(max_length=100, blank=True, null=True)
     profile_picture = models.URLField(blank=True, null=True)
+    bio = models.TextField(max_length=500, blank=True)
+    department = models.CharField(max_length=100, blank=True, default='CSE')
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

@@ -40,10 +40,23 @@
                 {% if field.name == 'role' %}
                 {{ field }}
                 {% else %}
+                {% if field.field.widget.input_type == 'password' %}
+                <div style="position: relative;">
+                    <input type="password" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                        placeholder="Enter {{ field.label|lower }}"
+                        style="width: 100%; padding: 0.8rem 3rem 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
+                        required>
+                    <button type="button" onclick="togglePasswordVisibility('{{ field.id_for_label }}', this)"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="ri-eye-off-line"></i>
+                    </button>
+                </div>
+                {% else %}
                 <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
                     id="{{ field.id_for_label }}" placeholder="Enter {{ field.label|lower }}"
                     style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
                     value="{{ field.value|default:'' }}" required>
+                {% endif %}
                 {% endif %}
             </div>
             {% endfor %}
@@ -60,4 +73,20 @@
             style="color: var(--primary); font-weight: 700; text-decoration: none;">Log in here</a>
     </div>
 </div>
+
+<script>
+    function togglePasswordVisibility(fieldId, btn) {
+        const input = document.getElementById(fieldId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('ri-eye-off-line');
+            icon.classList.add('ri-eye-line');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('ri-eye-line');
+            icon.classList.add('ri-eye-off-line');
+        }
+    }
+</script>
 {% endblock %}

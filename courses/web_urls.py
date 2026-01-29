@@ -5,6 +5,7 @@ from .views import (
     FlashcardView, KnowledgeGraphView, MaterialManagementListView,
     MaterialCreateView, MaterialUpdateView, MaterialDeleteView
 )
+from users.views import profile_view
 
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
@@ -23,4 +24,5 @@ urlpatterns = [
     path('manage/materials/add/', MaterialCreateView.as_view(), name='material-add'),
     path('manage/materials/<int:pk>/edit/', MaterialUpdateView.as_view(), name='material-edit'),
     path('manage/materials/<int:pk>/delete/', MaterialDeleteView.as_view(), name='material-delete'),
+    path('profile/', profile_view, name='profile'),
 ]
