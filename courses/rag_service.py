@@ -4,15 +4,37 @@ import requests
 from django.conf import settings
 from .models import CourseMaterial
 from django.db.models import Q
+import logging
+
+# Import vector store for semantic search
+try:
+    from .vector_store import VectorStoreService
+    VECTOR_STORE_AVAILABLE = True
+except ImportError:
+    VECTOR_STORE_AVAILABLE = False
+    logging.warning("Vector store not available. Install chromadb and sentence-transformers.")
 
 class RAGService:
-    def __init__(self):
+    def __init__(self, use_vector_search=True):
         self.api_key = getattr(settings, "GEMINI_API_KEY", None)
         if self.api_key:
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel('gemini-2.5-flash')
         else:
             self.model = None
+        
+        # Initialize vector store for semantic search
+        self.use_vector_search = use_vector_search and VECTOR_STORE_AVAILABLE
+        if self.use_vector_search:
+            try:
+                self.vector_store = VectorStoreService()
+                logging.info("Vector store initialized for semantic search")
+            except Exception as e:
+                logging.error(f"Failed to initialize vector store: {e}")
+                self.vector_store = None
+                self.use_vector_search = False
+        else:
+            self.vector_store = None
 
     def get_wikipedia_context(self, query):
         """
@@ -46,10 +68,36 @@ class RAGService:
                 return "⚠️ AI Quota Exceeded (429): The free tier limit has been reached. Please wait 30-60 seconds and try again, or use a different API key."
             return f"Error contacting Gemini Service: {error_msg}"
 
-    def search(self, query):
+    def search(self, query, n_results=10):
         """
-        Intelligent search with Keyword Expansion and Syntax-Aware filtering.
+        Hybrid Intelligent Search: Semantic Vector Search + Keyword Fallback.
+        Uses vector embeddings for semantic similarity when available,
+        falls back to keyword search otherwise.
         """
+        # Try semantic search first if vector store is available
+        if self.use_vector_search and self.vector_store:
+            try:
+                # Perform semantic similarity search
+                vector_results = self.vector_store.search(query, n_results=n_results)
+                
+                if vector_results:
+                    # Convert vector results to CourseMaterial objects
+                    material_ids = [int(result['id']) for result in vector_results]
+                    materials = CourseMaterial.objects.filter(id__in=material_ids)
+                    
+                    # Preserve the order from vector search (most similar first)
+                    materials_dict = {m.id: m for m in materials}
+                    ordered_materials = [materials_dict[mid] for mid in material_ids if mid in materials_dict]
+                    
+                    logging.info(f"Semantic search found {len(ordered_materials)} results for: {query[:50]}")
+                    return ordered_materials[:n_results]
+                    
+            except Exception as e:
+                logging.error(f"Vector search failed, falling back to keyword search: {e}")
+        
+        # Fallback to keyword-based search
+        logging.info(f"Using keyword search for: {query[:50]}")
+        
         # Part 1: Semantic Expansion (ask Gemini for keywords if it's a complex query)
         expanded_keywords = [query]
         if len(query.split()) > 3:
@@ -84,7 +132,7 @@ class RAGService:
             # Sort CODE materials to the top
             results_list = sorted(results_list, key=lambda x: 0 if x.file_type == 'CODE' else 1)
         
-        return results_list[:10]
+        return results_list[:n_results]
 
     def get_context_with_excerpts(self, results):
         context_docs = []
