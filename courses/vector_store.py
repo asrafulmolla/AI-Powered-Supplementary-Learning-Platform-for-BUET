@@ -1,7 +1,6 @@
-"""
-Vector Store Service for Semantic Search using ChromaDB and Sentence Transformers.
-This service provides semantic similarity search capabilities for the RAG system.
-"""
+import os
+# Disable ChromaDB telemetry before it's even imported
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 import chromadb
 from chromadb.config import Settings
@@ -10,6 +9,10 @@ from django.conf import settings
 import os
 from typing import List, Dict, Any
 import logging
+
+# Suppress noisy ChromaDB telemetry loggers
+logging.getLogger('chromadb.telemetry').setLevel(logging.CRITICAL)
+logging.getLogger('chromadb.telemetry.product.posthog').setLevel(logging.CRITICAL)
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +29,11 @@ class VectorStoreService:
         os.makedirs(self.chroma_dir, exist_ok=True)
         
         # Initialize ChromaDB client with persistent storage
-        # In ChromaDB 0.4+, PersistentClient is the correct way to handle persistence
-        self.client = chromadb.PersistentClient(path=self.chroma_dir)
+        # Disable anonymized telemetry to stop the capture() argument errors
+        self.client = chromadb.PersistentClient(
+            path=self.chroma_dir,
+            settings=chromadb.Settings(anonymized_telemetry=False)
+        )
         
         # Initialize embedding model (lightweight and fast)
         # Using all-MiniLM-L6-v2: 384 dimensions, good balance of speed and quality
@@ -144,13 +150,20 @@ class VectorStoreService:
             raise ValueError("Collection not initialized")
         
         try:
+            # Check actual document count to avoid warnings
+            total_docs = self.collection.count()
+            if total_docs == 0:
+                return []
+            
+            actual_n = min(n_results, total_docs)
+            
             # Generate query embedding
             query_embedding = self.generate_embedding(query)
             
             # Perform similarity search
             results = self.collection.query(
                 query_embeddings=[query_embedding],
-                n_results=n_results,
+                n_results=actual_n,
                 where=filter_metadata
             )
             
