@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Course Dashboard</div>
+</div>
+
+<div class="search-container">
+    <i class="ri-search-line" style="color: var(--text-muted); align-self: center; margin-left: 10px;"></i>
+    <input type="text" class="search-input" placeholder="Search materials via AI...">
+</div>
+
+<h2 style="margin-bottom: 20px; color: var(--primary);">Recent Materials</h2>
+<div class="grid">
+    {% for material in recent_materials %}
+    <div class="card">
+        <div class="card-header">
+            <span class="badge {% if material.category == 'THEORY' %}badge-theory{% else %}badge-lab{% endif %}">
+                {{ material.get_category_display }}
+            </span>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">
+                {{ material.created_at|date:"M d" }}
+            </span>
+        </div>
+        <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main);">{{ material.title }}</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+            {{ material.description|truncatechars:100 }}
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">
+                <i class="ri-file-list-line"></i> {{ material.get_file_type_display }}
+            </span>
+            <a href="#" style="color: var(--primary); text-decoration: none;">View &rarr;</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+        No materials uploaded yet.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Content-to-Video Generator</div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+        <h3>Summarize Course Content into Video</h3>
+    </div>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        Generate an AI-driven video script and storyboard summarizing your course materials for a selected topic.
+    </p>
+
+    <div style="margin-bottom: 2rem;">
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main); font-weight: 600;">Select
+            Topic</label>
+        <input type="text" id="video-topic" class="search-input" placeholder="e.g., QuickSort or Deadlocks"
+            style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px; padding: 1rem;">
+    </div>
+
+    <button id="generate-video-btn" class="btn-primary" style="width: 100%;">
+        <i class="ri-video-chat-line"></i> Generate Video Summary
+    </button>
+</div>
+
+<div id="video-result" style="max-width: 900px; margin: 2rem auto; display: none;">
+    <div class="card">
+        <div class="card-header"
+            style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+            <div>
+                <h3 id="vid-title" style="margin: 0; color: var(--primary);">Video Script</h3>
+                <span id="vid-duration" style="font-size: 0.8rem; color: var(--text-muted);">Duration: 0:00</span>
+            </div>
+            <button class="btn-primary" style="background: var(--secondary); font-size: 0.8rem; padding: 0.5rem 1rem;">
+                <i class="ri-download-cloud-line"></i> Export Storyboard
+            </button>
+        </div>
+
+        <div id="scenes-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Scenes will be injected here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('generate-video-btn').addEventListener('click', async () => {
+        const topic = document.getElementById('video-topic').value;
+        if (!topic) return;
+
+        const btn = document.getElementById('generate-video-btn');
+        const resultArea = document.getElementById('video-result');
+        const scenesContainer = document.getElementById('scenes-container');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing Content...';
+
+        try {
+            const response = await fetch('/api/video-script/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ topic })
+            });
+
+            const data = await response.json();
+
+            document.getElementById('vid-title').textContent = data.title;
+            document.getElementById('vid-duration').textContent = `Estimated Duration: ${data.duration}`;
+
+            scenesContainer.innerHTML = '';
+            data.scenes.forEach((scene, index) => {
+                const sceneDiv = document.createElement('div');
+                sceneDiv.style.display = 'grid';
+                sceneDiv.style.gridTemplateColumns = '120px 1fr';
+                sceneDiv.style.gap = '1.5rem';
+                sceneDiv.style.padding = '1rem';
+                sceneDiv.style.background = index % 2 === 0 ? '#f8fafc' : 'white';
+                sceneDiv.style.borderLeft = '4px solid var(--primary)';
+                sceneDiv.style.borderRadius = '0 8px 8px 0';
+
+                sceneDiv.innerHTML = `
+                    <div style="font-weight: 700; color: var(--primary);">
+                        <div style="font-size: 0.8rem; opacity: 0.6;">TIME</div>
+                        ${scene.time}
+                    </div>
+                    <div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--secondary); text-transform: uppercase;">Visual</span>
+                            <p style="margin: 0.2rem 0; font-size: 0.95rem;">${scene.visual}</p>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Audio / Voiceover</span>
+                            <p style="margin: 0.2rem 0; font-style: italic; font-size: 0.95rem;">"${scene.audio}"</p>
+                        </div>
+                    </div>
+                `;
+                scenesContainer.appendChild(sceneDiv);
+            });
+
+            resultArea.style.display = 'block';
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error(error);
+            alert('Failed to generate video script');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-video-chat-line"></i> Generate Video Summary';
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

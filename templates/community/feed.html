@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Community Board</div>
+    <button onclick="document.getElementById('new-post-modal').style.display='block'" class="btn-primary">
+        <i class="ri-add-line"></i> New Post
+    </button>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr;">
+    {% for post in posts %}
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div
+                    style="background:var(--secondary); color:white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ post.author_name|slice:":1" }}
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: var(--primary);">{{ post.title }}</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        {{ post.author_name }} • {{ post.created_at|timesince }} ago</span>
+                </div>
+            </div>
+            {% if post.has_bot_reply %}
+            <span class="badge" style="background: #e0f2fe; color: #0284c7;">
+                <i class="ri-robot-line"></i> Bot Replied
+            </span>
+            {% endif %}
+        </div>
+
+        <p style="margin-bottom: 1.5rem; line-height: 1.6;">{{ post.content }}</p>
+
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px;">
+            <h4 style="margin-top: 0; font-size: 0.9rem; color: var(--text-muted);">Comments</h4>
+            {% for comment in post.comments.all %}
+            <div
+                style="margin-bottom: 0.8rem; padding-bottom: 0.8rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span
+                        style="font-weight: 600; color: {% if comment.is_bot %}var(--primary){% else %}var(--text-main){% endif %};">
+                        {% if comment.is_bot %}🤖 EduBot{% else %}{{ comment.author_name }}{% endif %}
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">
+                        {{ comment.created_at|timesince }} ago
+                    </span>
+                </div>
+                <p style="margin: 0.2rem 0;">{{ comment.content }}</p>
+            </div>
+            {% empty %}
+            <p style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">No comments yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; color: var(--text-muted); padding: 3rem;">
+        <i class="ri-discuss-line" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+        No discussions started yet. Be the first!
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Simple Modal for New Post -->
+<div id="new-post-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="card" style="width: 500px; margin: 100px auto; position: relative;">
+        <button onclick="document.getElementById('new-post-modal').style.display='none'"
+            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <h3 style="margin-top: 0;">New Discussion</h3>
+        <form id="post-form">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Title</label>
+                <input type="text" id="post-title" required class="search-input"
+                    style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Your Name</label>
+                <input type="text" id="post-author" value="Student" class="search-input"
+                    style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Content</label>
+                <textarea id="post-content" required rows="4" class="search-input"
+                    style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px;"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Post Question</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('post-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('post-title').value;
+        const author = document.getElementById('post-author').value;
+        const content = document.getElementById('post-content').value;
+
+        try {
+            const response = await fetch('/community/api/posts/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    title: title,
+                    author_name: author,
+                    content: content
+                })
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to post');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Platform</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="brand">
+            <img src="{% static 'images/logo.png' %}" alt="BUET Logo"
+                style="width: 45px; height: 45px; object-fit: contain;">
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 1.2rem; line-height: 1.2;">BUET</span>
+                <span style="font-size: 0.65rem; font-weight: 400; opacity: 0.8; letter-spacing: 1px;">SUPPLEMENTARY
+                    LEARNING</span>
+            </div>
+        </div>
+        <nav>
+            <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                <i class="ri-dashboard-line"></i> Dashboard
+            </a>
+            <a href="#" class="nav-link">
+                <i class="ri-book-open-line"></i> Theory
+            </a>
+            <a href="#" class="nav-link">
+                <i class="ri-code-box-line"></i> Lab
+            </a>
+            <a href="/chat-ui/" class="nav-link {% if '/chat-ui' in request.path %}active{% endif %}">
+                <i class="ri-chat-smile-3-line"></i> AI Chat
+            </a>
+            <a href="/generator-ui/" class="nav-link {% if '/generator-ui' in request.path %}active{% endif %}">
+                <i class="ri-flask-line"></i> Generator
+            </a>
+            <a href="/community/feed/" class="nav-link {% if '/community/feed' in request.path %}active{% endif %}">
+                <i class="ri-discuss-line"></i> Community
+            </a>
+            <a href="/digitizer-ui/" class="nav-link {% if '/digitizer-ui' in request.path %}active{% endif %}">
+                <i class="ri-article-line"></i> Digitizer
+            </a>
+            <a href="/video-generator-ui/"
+                class="nav-link {% if '/video-generator-ui' in request.path %}active{% endif %}">
+                <i class="ri-video-line"></i> Video Gen
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+
+</html>

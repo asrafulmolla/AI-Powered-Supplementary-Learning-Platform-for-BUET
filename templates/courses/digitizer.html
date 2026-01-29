@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Handwritten Note Digitizer</div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <!-- Upload Area -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Upload Handwritten Notes</h3>
+        </div>
+
+        <div id="drop-zone"
+            style="border: 2px dashed var(--border-color); padding: 3rem; text-align: center; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: #f8fafc;">
+            <i class="ri-upload-cloud-2-line" style="font-size: 3rem; color: var(--primary);"></i>
+            <p style="margin-top: 1rem; color: var(--text-muted);">
+                Drag & Drop your image here or <b>Browse</b>
+            </p>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+        </div>
+
+        <button id="upload-btn" class="btn-primary" style="width: 100%; margin-top: 1rem; display: none;">
+            <i class="ri-scan-line"></i> Digitize Now
+        </button>
+    </div>
+
+    <!-- Result Area -->
+    <div class="card" id="result-card" style="display: none;">
+        <div class="card-header">
+            <h3>Digitized Output</h3>
+            <span class="badge" style="background: #dcfce7; color: #15803d;">Accuracy: High</span>
+        </div>
+        <div id="digitized-content"
+            style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: #f8fafc; padding: 1rem; border-radius: 8px;">
+            Processing...
+        </div>
+        <div style="margin-top: 1rem; display: flex; gap: 10px;">
+            <button id="copy-btn" class="btn-primary" style="flex: 1; background: var(--secondary);">
+                <i class="ri-clipboard-line"></i> Copy Text
+            </button>
+            <button id="download-btn" class="btn-primary" style="flex: 1; background: var(--text-muted);">
+                <i class="ri-file-download-line"></i> Download PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const resultCard = document.getElementById('result-card');
+    const resultContent = document.getElementById('digitized-content');
+    const copyBtn = document.getElementById('copy-btn');
+    const downloadBtn = document.getElementById('download-btn');
+
+    let selectedFile = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary)';
+        dropZone.style.background = '#f1f5f9';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.background = '#f8fafc';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border-color)';
+        dropZone.style.background = '#f8fafc';
+
+        if (e.dataTransfer.files.length) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        selectedFile = file;
+        dropZone.innerHTML = `
+            <i class="ri-file-image-line" style="font-size: 3rem; color: var(--primary);"></i>
+            <p style="margin-top: 1rem; color: var(--text-main); font-weight: 600;">${file.name}</p>
+        `;
+        uploadBtn.style.display = 'block';
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        resultCard.style.display = 'block';
+        resultContent.textContent = 'Scanning and converting...';
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            const response = await fetch('/api/digitize/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            resultContent.textContent = data.content;
+
+        } catch (error) {
+            resultContent.textContent = 'Error processing image.';
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // New Feature: Copy Text
+    copyBtn.addEventListener('click', () => {
+        const text = resultContent.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="ri-check-line"></i> Copied!';
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+        });
+    });
+
+    // New Feature: Download PDF
+    downloadBtn.addEventListener('click', () => {
+        const element = document.getElementById('digitized-content');
+        const opt = {
+            margin: 1,
+            filename: 'digitized_notes.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        downloadBtn.innerHTML = '<i class="ri-loader-line ri-spin"></i> Generating...';
+        html2pdf().set(opt).from(element).save().then(() => {
+            downloadBtn.innerHTML = '<i class="ri-file-download-line"></i> Download PDF';
+        });
+    });
+</script>
+{% endblock %}

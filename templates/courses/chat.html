@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="chat-wrapper">
+    <div class="page-title">AI Assistant</div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai">
+                Hello! I am your AI course assistant. Ask me anything about your lectures, labs, or assignments.
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" class="search-input" placeholder="Ask a question..."
+                style="background: #f1f5f9; border-radius: 12px; padding: 1rem; border: 1px solid #e2e8f0; width: 100%;">
+            <button id="send-btn" class="btn-primary">
+                <i class="ri-send-plane-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
