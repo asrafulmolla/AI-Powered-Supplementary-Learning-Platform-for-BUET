@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- External Dependencies for Markdown and LaTeX -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+<div class="header"
+    style="background: white; border-bottom: 1px solid #f1f5f9; margin-bottom: 2rem; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; gap: 1.5rem; align-items: center;">
+        <a href="/"
+            style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ri-arrow-left-s-line"></i> Dashboard
+        </a>
+        <div style="height: 20px; width: 1px; background: #e2e8f0;"></div>
+        <div style="font-weight: 500; color: var(--text-muted); font-size: 0.9rem;">{{ material.topic.name }}</div>
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <button onclick="window.print()"
+            style="background: transparent; border: 1px solid #e2e8f0; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; color: var(--text-main); font-weight: 500;">
+            <i class="ri-printer-line"></i> Print
+        </button>
+        <button onclick="shareLink()"
+            style="background: var(--primary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(116, 30, 30, 0.15);">
+            <i class="ri-share-forward-line"></i> Share
+        </button>
+    </div>
+</div>
+
+<div style="max-width: 1000px; margin: 0 auto; padding: 0 2rem 5rem 2rem;">
+    <!-- Article Header -->
+    <header style="text-align: center; margin-bottom: 4rem;">
+        <span
+            style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; font-weight: 700; color: var(--secondary); margin-bottom: 1rem; display: block;">
+            {{ material.file_type }} • {{ material.category }}
+        </span>
+        <h1
+            style="font-size: 2.8rem; font-weight: 800; color: #0f172a; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -1px;">
+            {{ material.title }}
+        </h1>
+        <div
+            style="display: flex; justify-content: center; align-items: center; gap: 2rem; color: var(--text-muted); font-size: 0.95rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="ri-calendar-event-line"></i> {{ material.created_at|date:"M d, Y" }}
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="ri-user-follow-line"></i> Academic Resource
+            </div>
+        </div>
+    </header>
+
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 4rem; align-items: start;">
+        <!-- Left content -->
+        <article>
+            <div
+                style="font-size: 1.15rem; line-height: 1.8; color: #334155; margin-bottom: 3rem; font-family: 'Georgia', serif; font-style: italic; border-left: 3px solid var(--secondary); padding-left: 2rem;">
+                {{ material.description }}
+            </div>
+
+            {% if material.text_content %}
+            <div style="position: relative;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1e293b;">Content Exploration</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="ai-summarize-btn"
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+                            <i class="ri-sparkling-fill"></i> AI Summarize
+                        </button>
+                        <button onclick="copyContent()"
+                            style="background: #1e293b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">
+                            <i class="ri-file-copy-line"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ai-summary-box"
+                    style="display: none; background: #fffcf0; border: 1px solid #fef3c7; padding: 2rem; border-radius: 12px; margin-bottom: 3rem;">
+                    <h4
+                        style="color: #92400e; margin-bottom: 0.8rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                        AI Perspective</h4>
+                    <div id="summary-content" style="line-height: 1.7; color: #78350f;"></div>
+                </div>
+
+                <div id="markdown-viewer" class="luxury-content" style="background: white; min-height: 400px;">
+                    <div id="raw-content" style="display: none;">{{ material.text_content }}</div>
+                    <div id="rendered-content"></div>
+                </div>
+            </div>
+            {% endif %}
+        </article>
+
+        <!-- Right sidebar -->
+        <aside>
+            {% if material.file %}
+            <div
+                style="background: #ffffff; border: 1px solid #e2e8f0; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center;">
+                <i class="ri-file-pdf-fill"
+                    style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem; display: block;"></i>
+                <h4 style="margin-bottom: 0.5rem;">Official Media</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Download the full
+                    version of this resource.</p>
+                <a href="{{ material.file.url }}" download class="btn-primary"
+                    style="width: 100%; text-decoration: none; display: block; background: #0f172a;">
+                    Download Reference
+                </a>
+            </div>
+            {% endif %}
+
+            <div
+                style="background: #741e1e; padding: 2rem; border-radius: 16px; color: white; margin-bottom: 2.5rem; position: relative; overflow: hidden;">
+                <i class="ri-robot-line"
+                    style="position: absolute; right: -10px; bottom: -10px; font-size: 6rem; opacity: 0.1;"></i>
+                <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">AI Interaction</h4>
+                <p style="font-size: 0.85rem; opacity: 0.9; line-height: 1.6; margin-bottom: 1.5rem;">
+                    Curious about specific parts? Let our resident AI guide you through the complexities.
+                </p>
+                <a href="/chat-ui/?query=Summarize%20the%20key%20points%20of%20{{ material.title }}"
+                    style="background: white; color: var(--primary); text-decoration: none; padding: 0.8rem; border-radius: 8px; display: block; text-align: center; font-weight: 700; font-size: 0.9rem;">
+                    Start Inquiry
+                </a>
+            </div>
+
+            {% if related_materials %}
+            <h5
+                style="text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Related Documents</h5>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for rel in related_materials %}
+                <a href="/material-detail/{{ rel.pk }}/" style="text-decoration: none; group;">
+                    <div style="transition: all 0.3s;">
+                        <span style="font-size: 0.7rem; color: var(--secondary); font-weight: 700;">
+                            {{ rel.file_type }}</span>
+                        <div style="color: #1e293b; font-weight: 600; font-size: 0.95rem; margin-top: 2px;">
+                            {{ rel.title }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rawContent = document.getElementById('raw-content');
+        if (rawContent) {
+            const renderedBox = document.getElementById('rendered-content');
+            const markdownText = rawContent.innerHTML;
+
+            // Render Markdown
+            renderedBox.innerHTML = marked.parse(markdownText);
+
+            // Render LaTeX
+            renderMathInElement(renderedBox, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false
+            });
+        }
+
+        // Mock AI Summarize
+        const summarizeBtn = document.getElementById('ai-summarize-btn');
+        if (summarizeBtn) {
+            summarizeBtn.onclick = function () {
+                const summaryBox = document.getElementById('ai-summary-box');
+                const summaryContent = document.getElementById('summary-content');
+
+                summarizeBtn.innerHTML = '<i class="ri-loader-line ri-spin"></i> Analyzing...';
+
+                setTimeout(() => {
+                    summaryBox.style.display = 'block';
+                    summaryContent.innerHTML = "This document discusses key principles of <b>{{ material.topic.name }}</b>, specifically focusing on <i>{{ material.title }}</i>. It outlines core methodologies and provides practical examples for university-level understanding.";
+                    summarizeBtn.innerHTML = '<i class="ri-check-line"></i> Done';
+                    summarizeBtn.style.background = '#dcfce7';
+                    summarizeBtn.style.color = '#16a34a';
+                }, 1500);
+            };
+        }
+    });
+
+    function copyContent() {
+        const text = document.getElementById('raw-content').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Markdown content copied!');
+        });
+    }
+
+    function shareLink() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ material.title }}',
+                url: window.location.href
+            });
+        } else {
+            alert('URL linked copied: ' + window.location.href);
+        }
+    }
+</script>
+
+<style>
+    .content-body h1,
+    .content-body h2,
+    .content-body h3 {
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 0.5rem;
+        margin: 1.5rem 0 1rem 0;
+        color: #1e293b;
+    }
+
+    .content-body code {
+        background: #f1f5f9;
+        padding: 0.1rem 0.3rem;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+
+    .content-body blockquote {
+        border-left: 4px solid var(--primary);
+        padding-left: 1rem;
+        color: #64748b;
+        font-style: italic;
+        margin: 1rem 0;
+    }
+
+    .content-body p {
+        margin-bottom: 1.2rem;
+    }
+
+    .card-link:hover .card {
+        transform: scale(1.02);
+        border-color: var(--primary);
+    }
+
+    @media print {
+
+        /* Hide UI elements */
+        .sidebar,
+        .header,
+        .btn-primary,
+        #ai-summarize-btn,
+        .badge,
+        .card-link,
+        #ai-summary-box {
+            display: none !important;
+        }
+
+        /* Reset Layout */
+        body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        .grid {
+            display: block !important;
+        }
+
+        /* Style the Content */
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        #markdown-viewer {
+            border: none !important;
+            padding: 0 !important;
+            font-size: 12pt !important;
+            line-height: 1.6 !important;
+        }
+
+        /* Print Header - Professional Academic Look */
+        #printable-area::before {
+            content: "BUET - Supplementary Learning Platform\A Department of Computer Science and Engineering\A ------------------------------------------------------------";
+            white-space: pre;
+            display: block;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24pt !important;
+            text-align: center;
+            margin-bottom: 10px !important;
+        }
+
+        /* Ensure Math (KaTeX) prints correctly */
+        .katex-display {
+            margin: 20px 0 !important;
+        }
+
+        /* Footer for print */
+        body::after {
+            content: "Generated by BUET AI Platform on " attr(data-date);
+            display: block;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            margin-top: 50px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+    }
+</style>
+
+<script>
+    // Set current date for print footer
+    document.body.setAttribute('data-date', new Date().toLocaleDateString());
+</script>
+{% endblock %}

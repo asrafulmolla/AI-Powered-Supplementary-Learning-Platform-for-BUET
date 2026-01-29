@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Interactive AI Quiz</div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;" id="quiz-setup">
+    <div class="card-header">
+        <h3>Test Your Knowledge</h3>
+    </div>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        Select a topic, and our AI will generate a customized quiz based on your course materials.
+    </p>
+
+    <div style="margin-bottom: 2rem;">
+        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main); font-weight: 600;">Choose a
+            Topic</label>
+        <input type="text" id="quiz-topic" class="search-input" placeholder="e.g., Deadlocks or Artificial Intelligence"
+            style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px; padding: 1rem;">
+    </div>
+
+    <button id="start-quiz-btn" class="btn-primary" style="width: 100%;">
+        <i class="ri-play-line"></i> Generate Quiz
+    </button>
+</div>
+
+<div id="quiz-container" style="max-width: 800px; margin: 2rem auto; display: none;">
+    <div class="card">
+        <div id="quiz-header"
+            style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="current-question-num" style="margin: 0; color: var(--primary);">Question 1 of 5</h3>
+            <div id="timer" style="font-family: monospace; font-weight: bold; color: var(--secondary);">00:00</div>
+        </div>
+
+        <div id="question-area">
+            <h4 id="question-text" style="font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.5;">Question loading...
+            </h4>
+            <div id="options-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Options injected here -->
+            </div>
+        </div>
+
+        <div id="feedback-area" style="margin-top: 2rem; padding: 1rem; border-radius: 8px; display: none;">
+            <!-- Feedback injected here -->
+        </div>
+
+        <div
+            style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; justify-content: space-between;">
+            <button id="end-quiz-btn" class="btn-primary"
+                style="background: var(--text-muted); padding: 0.5rem 1rem;">End Quiz</button>
+            <button id="next-question-btn" class="btn-primary" style="display: none;">Next Question <i
+                    class="ri-arrow-right-line"></i></button>
+        </div>
+    </div>
+</div>
+
+<div id="quiz-results" style="max-width: 600px; margin: 5rem auto; text-align: center; display: none;">
+    <div class="card">
+        <i class="ri-trophy-line" style="font-size: 4rem; color: #fbbf24;"></i>
+        <h2 style="margin: 1rem 0;">Quiz Completed!</h2>
+        <p style="font-size: 1.5rem; font-weight: 800; color: var(--primary);" id="final-score">Score: 0/0</p>
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 2rem; width: 100%;">Try Another
+            Topic</button>
+    </div>
+</div>
+
+<script>
+    let currentQuiz = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    document.getElementById('start-quiz-btn').addEventListener('click', async () => {
+        const topic = document.getElementById('quiz-topic').value;
+        if (!topic) return;
+
+        const btn = document.getElementById('start-quiz-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-line ri-spin"></i> Generating Questions...';
+
+        try {
+            const response = await fetch('/api/quiz/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ topic })
+            });
+
+            currentQuiz = await response.json();
+            if (currentQuiz.error) throw new Error(currentQuiz.error);
+
+            document.getElementById('quiz-setup').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+            loadQuestion();
+
+        } catch (error) {
+            console.error(error);
+            alert('Failed to generate quiz: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-play-line"></i> Generate Quiz';
+        }
+    });
+
+    function loadQuestion() {
+        const q = currentQuiz[currentIndex];
+        document.getElementById('current-question-num').textContent = `Question ${currentIndex + 1} of ${currentQuiz.length}`;
+        document.getElementById('question-text').textContent = q.question;
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary';
+            btn.style.background = 'white';
+            btn.style.color = 'var(--text-main)';
+            btn.style.border = '1px solid var(--border-color)';
+            btn.style.textAlign = 'left';
+            btn.style.padding = '1rem';
+            btn.style.fontWeight = '500';
+            btn.textContent = opt;
+
+            btn.onclick = () => selectOption(btn, opt);
+            container.appendChild(btn);
+        });
+
+        document.getElementById('feedback-area').style.display = 'none';
+        document.getElementById('next-question-btn').style.display = 'none';
+    }
+
+    function selectOption(btn, selected) {
+        const q = currentQuiz[currentIndex];
+        const isCorrect = selected === q.answer;
+
+        // Disable all options
+        const btns = document.getElementById('options-container').children;
+        for (let b of btns) {
+            b.disabled = true;
+            if (b.textContent === q.answer) {
+                b.style.background = '#dcfce7'; // green
+                b.style.borderColor = '#22c55e';
+            }
+        }
+
+        if (isCorrect) {
+            score++;
+        } else {
+            btn.style.background = '#fee2e2'; // red
+            btn.style.borderColor = '#ef4444';
+        }
+
+        const feedback = document.getElementById('feedback-area');
+        feedback.style.display = 'block';
+        feedback.style.background = isCorrect ? '#f0fdf4' : '#fef2f2';
+        feedback.innerHTML = `
+            <strong style="color: ${isCorrect ? '#16a34a' : '#dc2626'}">${isCorrect ? 'Correct!' : 'Incorrect'}</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">${q.explanation}</p>
+        `;
+
+        document.getElementById('next-question-btn').style.display = 'block';
+    }
+
+    document.getElementById('next-question-btn').addEventListener('click', () => {
+        currentIndex++;
+        if (currentIndex < currentQuiz.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    document.getElementById('end-quiz-btn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to end the quiz now?')) {
+            showResults();
+        }
+    });
+
+    function showResults() {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('quiz-results').style.display = 'block';
+        document.getElementById('final-score').textContent = `Final Score: ${score} / ${currentQuiz.length}`;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+<style>
+    #options-container button:hover:not(:disabled) {
+        background: #f1f5f9 !important;
+        border-color: var(--primary) !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div
+    style="max-width: 450px; margin: 4rem auto; padding: 3rem; background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid var(--border-color);">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div
+            style="width: 70px; height: 70px; background: var(--secondary); color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+            <i class="ri-user-follow-line"></i>
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Finish Setup</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            {% blocktrans with provider_name=account.get_provider.name site_name=site.name %}You are about to use your
+            {{provider_name}} account to login to {{site_name}}. As a final step, please provide a username.{%
+            endblocktrans %}
+        </p>
+    </div>
+
+    <form class="signup" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}"
+        style="display: flex; flex-direction: column; gap: 1.2rem;">
+        {% csrf_token %}
+        {% for field in form %}
+        <div>
+            <label
+                style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">{{
+                field.label }}</label>
+            {{ field.errors }}
+            {% if field.name == 'role' %}
+            {{ field }}
+            {% else %}
+            <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
+                id="{{ field.id_for_label }}" placeholder="Enter {{ field.label|lower }}"
+                style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
+                value="{{ field.value|default:'' }}" required>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+
+        <button type="submit" class="btn-primary"
+            style="padding: 1rem; border-radius: 12px; font-size: 1rem; margin-top: 1rem;">
+            {% trans "Sign Up" %}
+        </button>
+    </form>
+</div>
+{% endblock %}

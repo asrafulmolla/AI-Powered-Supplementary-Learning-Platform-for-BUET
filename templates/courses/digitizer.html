@@ -1,51 +1,119 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="header">
-    <div class="page-title">Handwritten Note Digitizer</div>
-</div>
-
-<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
-    <!-- Upload Area -->
-    <div class="card">
-        <div class="card-header">
-            <h3>Upload Handwritten Notes</h3>
-        </div>
-
-        <div id="drop-zone"
-            style="border: 2px dashed var(--border-color); padding: 3rem; text-align: center; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: #f8fafc;">
-            <i class="ri-upload-cloud-2-line" style="font-size: 3rem; color: var(--primary);"></i>
-            <p style="margin-top: 1rem; color: var(--text-muted);">
-                Drag & Drop your image here or <b>Browse</b>
-            </p>
-            <input type="file" id="file-input" accept="image/*" style="display: none;">
-        </div>
-
-        <button id="upload-btn" class="btn-primary" style="width: 100%; margin-top: 1rem; display: none;">
-            <i class="ri-scan-line"></i> Digitize Now
-        </button>
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div style="margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">Intelligent Note
+            Digitizer</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Convert handwritten lecture notes into searchable,
+            professional digital documents.</p>
     </div>
 
-    <!-- Result Area -->
-    <div class="card" id="result-card" style="display: none;">
-        <div class="card-header">
-            <h3>Digitized Output</h3>
-            <span class="badge" style="background: #dcfce7; color: #15803d;">Accuracy: High</span>
-        </div>
-        <div id="digitized-content"
-            style="white-space: pre-wrap; font-family: 'Courier New', monospace; background: #f8fafc; padding: 1rem; border-radius: 8px;">
-            Processing...
-        </div>
-        <div style="margin-top: 1rem; display: flex; gap: 10px;">
-            <button id="copy-btn" class="btn-primary" style="flex: 1; background: var(--secondary);">
-                <i class="ri-clipboard-line"></i> Copy Text
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+        <!-- Left: Upload Section -->
+        <div>
+            <div class="card"
+                style="padding: 2.5rem; border-radius: 30px; border: 2px dashed #e2e8f0; background: white; text-align: center; transition: all 0.3s; position: relative;"
+                id="drop-zone">
+                <div
+                    style="width: 120px; height: 120px; background: #fff1f2; border-radius: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                    <i class="ri-quill-pen-line" style="font-size: 3.5rem; color: var(--primary);"></i>
+                </div>
+                <h3 style="font-size: 1.4rem; margin-bottom: 1rem;">Upload Handwriting</h3>
+                <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">
+                    Snap a photo of your classroom board or notebook. AI will extract and structure the text.
+                </p>
+
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+                <button class="btn-primary" onclick="document.getElementById('file-input').click()"
+                    style="background: var(--text-main); border: none;">
+                    Browse Image
+                </button>
+
+                <div id="file-preview" style="display: none; margin-top: 2rem;">
+                    <div
+                        style="padding: 1rem; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; gap: 15px; text-align: left;">
+                        <i class="ri-image-2-line" style="font-size: 1.5rem; color: var(--primary);"></i>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div id="file-name"
+                                style="font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                note_image.jpg</div>
+                            <div id="file-size" style="font-size: 0.75rem; color: var(--text-muted);">2.4 MB</div>
+                        </div>
+                        <i class="ri-checkbox-circle-fill" style="color: #16a34a; font-size: 1.2rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button id="upload-btn" class="btn-primary"
+                style="width: 100%; margin-top: 2rem; padding: 1.2rem; border-radius: 20px; font-size: 1.1rem; display: none; background: linear-gradient(135deg, var(--primary), #a52a2a); border: none; box-shadow: 0 10px 30px rgba(116,30,30,0.2);">
+                <i class="ri-scan-2-line"></i> Start Neural Recognition
             </button>
-            <button id="download-btn" class="btn-primary" style="flex: 1; background: var(--text-muted);">
-                <i class="ri-file-download-line"></i> Download PDF
-            </button>
+        </div>
+
+        <!-- Right: Result Section -->
+        <div style="display: flex; flex-direction: column;">
+            <div id="empty-result"
+                style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 30px; border: 1px solid var(--border-color); padding: 3rem; text-align: center; min-height: 450px;">
+                <i class="ri-file-search-line" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+                <h4 style="color: #94a3b8;">Awaiting Input...</h4>
+                <p style="color: #cbd5e1; font-size: 0.9rem;">The digitized version of your notes will appear here once
+                    processed.</p>
+            </div>
+
+            <div id="result-card"
+                style="display: none; flex: 1; background: white; border-radius: 30px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.05); overflow: hidden;">
+                <div
+                    style="padding: 1.5rem 2rem; background: #fafafa; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="width: 10px; height: 10px; background: #16a34a; border-radius: 50%;"></span>
+                        <span
+                            style="font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">Output
+                            Ready</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="action-mini-btn" id="copy-btn" title="Copy Text"><i
+                                class="ri-file-copy-line"></i></button>
+                        <button class="action-mini-btn" id="download-btn" title="Export PDF"><i
+                                class="ri-file-pdf-line"></i></button>
+                    </div>
+                </div>
+                <div id="digitized-content"
+                    style="padding: 2.5rem; font-size: 1.1rem; line-height: 1.8; color: #334155; font-family: 'Inter', sans-serif; min-height: 350px;">
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .action-mini-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .action-mini-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    #drop-zone.dragover {
+        border-color: var(--primary);
+        background: #fff1f2;
+        transform: scale(1.02);
+    }
+</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -54,56 +122,45 @@
     const fileInput = document.getElementById('file-input');
     const uploadBtn = document.getElementById('upload-btn');
     const resultCard = document.getElementById('result-card');
+    const emptyResult = document.getElementById('empty-result');
     const resultContent = document.getElementById('digitized-content');
+    const previewArea = document.getElementById('file-preview');
     const copyBtn = document.getElementById('copy-btn');
     const downloadBtn = document.getElementById('download-btn');
 
     let selectedFile = null;
 
-    dropZone.addEventListener('click', () => fileInput.click());
-
     fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleFile(e.target.files[0]);
-        }
+        if (e.target.files.length) handleFile(e.target.files[0]);
     });
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'var(--primary)';
-        dropZone.style.background = '#f1f5f9';
+        dropZone.classList.add('dragover');
     });
 
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--border-color)';
-        dropZone.style.background = '#f8fafc';
-    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.style.borderColor = 'var(--border-color)';
-        dropZone.style.background = '#f8fafc';
-
-        if (e.dataTransfer.files.length) {
-            handleFile(e.dataTransfer.files[0]);
-        }
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
 
     function handleFile(file) {
         selectedFile = file;
-        dropZone.innerHTML = `
-            <i class="ri-file-image-line" style="font-size: 3rem; color: var(--primary);"></i>
-            <p style="margin-top: 1rem; color: var(--text-main); font-weight: 600;">${file.name}</p>
-        `;
+        document.getElementById('file-name').textContent = file.name;
+        document.getElementById('file-size').textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        previewArea.style.display = 'block';
         uploadBtn.style.display = 'block';
     }
 
     uploadBtn.addEventListener('click', async () => {
         if (!selectedFile) return;
 
+        emptyResult.style.display = 'none';
         resultCard.style.display = 'block';
-        resultContent.textContent = 'Scanning and converting...';
+        resultContent.innerHTML = '<div style="display:flex; flex-direction:column; align-items:center; gap:15px; color:#94a3b8; margin-top:5rem;"><i class="ri-loader-4-line ri-spin" style="font-size:3rem;"></i>Scanning handwriting...</div>';
 
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -112,60 +169,35 @@
             const response = await fetch('/api/digitize/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: formData
             });
 
             const data = await response.json();
-            resultContent.textContent = data.content;
+            resultContent.innerHTML = data.content.replace(/\n/g, '<br>');
 
         } catch (error) {
-            resultContent.textContent = 'Error processing image.';
+            resultContent.innerHTML = '<div style="color:#b91c1c;">Processing error. Please verify the image quality.</div>';
         }
     });
 
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // New Feature: Copy Text
     copyBtn.addEventListener('click', () => {
         const text = resultContent.innerText;
         navigator.clipboard.writeText(text).then(() => {
-            const originalText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<i class="ri-check-line"></i> Copied!';
-            setTimeout(() => {
-                copyBtn.innerHTML = originalText;
-            }, 2000);
+            alert('Copied to clipboard!');
         });
     });
 
-    // New Feature: Download PDF
     downloadBtn.addEventListener('click', () => {
-        const element = document.getElementById('digitized-content');
         const opt = {
             margin: 1,
-            filename: 'digitized_notes.pdf',
+            filename: 'digitized_note.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
-        downloadBtn.innerHTML = '<i class="ri-loader-line ri-spin"></i> Generating...';
-        html2pdf().set(opt).from(element).save().then(() => {
-            downloadBtn.innerHTML = '<i class="ri-file-download-line"></i> Download PDF';
-        });
+        html2pdf().set(opt).from(resultContent).save();
     });
 </script>
 {% endblock %}

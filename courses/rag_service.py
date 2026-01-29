@@ -1,4 +1,5 @@
 import google.generativeai as genai
+import json
 from django.conf import settings
 from .models import CourseMaterial
 from django.db.models import Q
@@ -106,3 +107,61 @@ Instructions:
             validation_result = validator.validate_code(content, language="python")
 
         return {"content": content, "validation": validation_result}
+
+    def generate_quiz(self, topic):
+        """Generate a 5-question MCQ quiz based on topic and context"""
+        results = self.search(topic)
+        context = self.get_context_string(results)
+        prompt = f"""Based on the following context, generate a 5-question multiple choice quiz about '{topic}'.
+        Context: {context}
+        
+        Format the output AS ONLY A JSON LIST with this structure:
+        [
+            {{
+                "question": "question text",
+                "options": ["A", "B", "C", "D"],
+                "answer": "correct option",
+                "explanation": "why this is correct"
+            }}
+        ]
+        Return ONLY the JSON."""
+        
+        if not self.model:
+            return []
+
+        try:
+            response = self.model.generate_content(prompt)
+            import re
+            # Extract JSON array using regex
+            match = re.search(r"\[.*\]", response.text, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            return []
+        except Exception as e:
+            return []
+
+    def provide_bangla_explanation(self, topic):
+        """Advanced Feature: Bangla explanation for complex concepts"""
+        prompt = f"Explain the academic concept of '{topic}' in simple Bangla, specifically for a university student. Ensure technical terms are in English but the explanation is in Bangla. Highlight key BUET level insights."
+        return self.query_ai(prompt)
+
+    def generate_flashcards(self, topic):
+        """Advanced Feature: AI Flashcard Generator"""
+        prompt = f"""Generate 6 high-quality academic flashcards for the topic: {topic}.
+        Format as a JSON list of objects with 'front' (question/concept) and 'back' (answer/explanation).
+        Keep it concise and relevant for exam preparation.
+        Return ONLY valid JSON."""
+        
+        if not self.model:
+            return []
+
+        try:
+            response = self.model.generate_content(prompt)
+            import re
+            # Extract JSON array using regex
+            match = re.search(r"\[.*\]", response.text, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            return [{"front": "Error", "back": "AI response was not in expected format."}]
+        except:
+            return [{"front": "Error", "back": "Failed to generate cards. Try again."}]

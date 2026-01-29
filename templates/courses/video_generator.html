@@ -1,48 +1,137 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="header">
-    <div class="page-title">Content-to-Video Generator</div>
-</div>
-
-<div class="card" style="max-width: 800px; margin: 0 auto;">
-    <div class="card-header">
-        <h3>Summarize Course Content into Video</h3>
-    </div>
-    <p style="color: var(--text-muted); margin-bottom: 2rem;">
-        Generate an AI-driven video script and storyboard summarizing your course materials for a selected topic.
-    </p>
-
-    <div style="margin-bottom: 2rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main); font-weight: 600;">Select
-            Topic</label>
-        <input type="text" id="video-topic" class="search-input" placeholder="e.g., QuickSort or Deadlocks"
-            style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px; padding: 1rem;">
-    </div>
-
-    <button id="generate-video-btn" class="btn-primary" style="width: 100%;">
-        <i class="ri-video-chat-line"></i> Generate Video Summary
-    </button>
-</div>
-
-<div id="video-result" style="max-width: 900px; margin: 2rem auto; display: none;">
-    <div class="card">
-        <div class="card-header"
-            style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
-            <div>
-                <h3 id="vid-title" style="margin: 0; color: var(--primary);">Video Script</h3>
-                <span id="vid-duration" style="font-size: 0.8rem; color: var(--text-muted);">Duration: 0:00</span>
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <!-- Page Header -->
+    <div
+        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4rem; position: relative; z-index: 10;">
+        <div style="max-width: 600px;">
+            <div
+                style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: #fff1f2; color: var(--primary); border-radius: 100px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;">
+                <i class="ri-movie-2-line"></i> Dynamic Storyboarding
             </div>
-            <button class="btn-primary" style="background: var(--secondary); font-size: 0.8rem; padding: 0.5rem 1rem;">
-                <i class="ri-download-cloud-line"></i> Export Storyboard
+            <h1
+                style="font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1.1; margin-bottom: 1.5rem;">
+                AI-Driven Video <span
+                    style="background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Symphony</span>
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.2rem; line-height: 1.6;">Transform complex academic textual
+                content into structured cinematic video scripts for lecture summaries.</p>
+        </div>
+        <div
+            style="width: 250px; height: 250px; background: radial-gradient(circle, rgba(116,30,30,0.05) 0%, rgba(116,30,30,0) 70%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="ri-vidicon-line" style="font-size: 8rem; color: #f1f5f9;"></i>
+        </div>
+    </div>
+
+    <!-- Configuration Card -->
+    <div class="card"
+        style="padding: 3rem; border-radius: 35px; background: white; border: 1px solid var(--border-color); box-shadow: 0 30px 60px rgba(0,0,0,0.05); margin-bottom: 4rem;">
+        <div style="display: grid; grid-template-columns: 1fr 280px; gap: 2rem; align-items: flex-end;">
+            <div>
+                <label
+                    style="display: block; font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Scientific
+                    Concept or Lecture Topic</label>
+                <div style="position: relative;">
+                    <i class="ri-search-2-line"
+                        style="position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem;"></i>
+                    <input type="text" id="video-topic"
+                        placeholder="e.g. Asymptotic Notation, Operating System Deadlocks..."
+                        style="width: 100%; padding: 1.5rem 1.5rem 1.5rem 3.5rem; border-radius: 20px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 1.1rem; outline: none; transition: all 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                </div>
+            </div>
+            <button id="generate-video-btn" class="btn-primary"
+                style="height: 68px; border-radius: 20px; font-size: 1.1rem; font-weight: 800; background: var(--text-main); border: none; box-shadow: 0 15px 25px rgba(0,0,0,0.1);">
+                <i class="ri-play-list-add-line"></i> Generate Script
+            </button>
+        </div>
+    </div>
+
+    <!-- Result Area -->
+    <div id="video-result" style="display: none;">
+        <div
+            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 0 1rem;">
+            <div>
+                <h2 id="vid-title" style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">Operating Systems
+                    101</h2>
+                <div id="vid-duration" style="font-size: 0.9rem; color: #64748b; font-weight: 600; margin-top: 4px;">
+                    EST. DURATION: 2:45 MIN</div>
+            </div>
+            <button class="btn-primary"
+                style="background: white; color: var(--text-main); border: 2px solid #e2e8f0; box-shadow: none;">
+                <i class="ri-file-download-line"></i> Export Storyboard
             </button>
         </div>
 
-        <div id="scenes-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div id="scenes-container" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
             <!-- Scenes will be injected here -->
         </div>
     </div>
+
+    <!-- Progress Placeholder -->
+    <div id="video-loading" style="display: none; text-align: center; padding: 5rem 0;">
+        <div class="vid-loader"></div>
+        <h3 style="margin-top: 2rem; color: #94a3b8;">Analyzing course context and building scenes...</h3>
+    </div>
 </div>
+
+<style>
+    .vid-loader {
+        width: 60px;
+        height: 60px;
+        background: var(--primary);
+        margin: 0 auto;
+        animation: vid-pulse 1.2s infinite ease-in-out;
+        border-radius: 15px;
+    }
+
+    @keyframes vid-pulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 0.5;
+            border-radius: 15px;
+        }
+
+        50% {
+            transform: scale(1.2);
+            opacity: 1;
+            border-radius: 30px;
+        }
+
+        100% {
+            transform: scale(0.8);
+            opacity: 0.5;
+            border-radius: 15px;
+        }
+    }
+
+    .scene-card {
+        background: white;
+        border: 1px solid #f1f5f9;
+        border-radius: 24px;
+        padding: 2rem;
+        display: grid;
+        grid-template-columns: 100px 1fr 1.5fr;
+        gap: 3rem;
+        align-items: flex-start;
+        transition: all 0.3s;
+    }
+
+    .scene-card:hover {
+        transform: translateX(10px);
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    .scene-meta-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+    }
+</style>
 
 <script>
     document.getElementById('generate-video-btn').addEventListener('click', async () => {
@@ -51,17 +140,20 @@
 
         const btn = document.getElementById('generate-video-btn');
         const resultArea = document.getElementById('video-result');
+        const loadingState = document.getElementById('video-loading');
         const scenesContainer = document.getElementById('scenes-container');
 
         btn.disabled = true;
-        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing Content...';
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing...';
+        resultArea.style.display = 'none';
+        loadingState.style.display = 'block';
 
         try {
             const response = await fetch('/api/video-script/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({ topic })
             });
@@ -69,63 +161,41 @@
             const data = await response.json();
 
             document.getElementById('vid-title').textContent = data.title;
-            document.getElementById('vid-duration').textContent = `Estimated Duration: ${data.duration}`;
+            document.getElementById('vid-duration').textContent = `EST. DURATION: ${data.duration}`;
 
             scenesContainer.innerHTML = '';
             data.scenes.forEach((scene, index) => {
                 const sceneDiv = document.createElement('div');
-                sceneDiv.style.display = 'grid';
-                sceneDiv.style.gridTemplateColumns = '120px 1fr';
-                sceneDiv.style.gap = '1.5rem';
-                sceneDiv.style.padding = '1rem';
-                sceneDiv.style.background = index % 2 === 0 ? '#f8fafc' : 'white';
-                sceneDiv.style.borderLeft = '4px solid var(--primary)';
-                sceneDiv.style.borderRadius = '0 8px 8px 0';
+                sceneDiv.className = 'scene-card';
 
                 sceneDiv.innerHTML = `
-                    <div style="font-weight: 700; color: var(--primary);">
-                        <div style="font-size: 0.8rem; opacity: 0.6;">TIME</div>
-                        ${scene.time}
+                    <div style="text-align: center;">
+                        <div class="scene-meta-label">SCENE ${index + 1}</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary); padding: 10px; background: #fff1f2; border-radius: 12px;">${scene.time}</div>
                     </div>
                     <div>
-                        <div style="margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--secondary); text-transform: uppercase;">Visual</span>
-                            <p style="margin: 0.2rem 0; font-size: 0.95rem;">${scene.visual}</p>
-                        </div>
-                        <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Audio / Voiceover</span>
-                            <p style="margin: 0.2rem 0; font-style: italic; font-size: 0.95rem;">"${scene.audio}"</p>
-                        </div>
+                        <div class="scene-meta-label">Visual Direction</div>
+                        <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">${scene.visual}</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: #f8fafc; border-radius: 18px; border-left: 4px solid var(--secondary);">
+                        <div class="scene-meta-label" style="color: var(--secondary);">Voiceover Content</div>
+                        <p style="font-size: 0.95rem; line-height: 1.6; font-style: italic; color: #475569;">"${scene.audio}"</p>
                     </div>
                 `;
                 scenesContainer.appendChild(sceneDiv);
             });
 
+            loadingState.style.display = 'none';
             resultArea.style.display = 'block';
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+            window.scrollTo({ top: resultArea.offsetTop - 100, behavior: 'smooth' });
 
         } catch (error) {
-            console.error(error);
-            alert('Failed to generate video script');
+            alert('Generation error. Ensure your topic is related to course materials.');
+            loadingState.style.display = 'none';
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="ri-video-chat-line"></i> Generate Video Summary';
+            btn.innerHTML = '<i class="ri-play-list-add-line"></i> Generate Script';
         }
     });
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
 </script>
 {% endblock %}

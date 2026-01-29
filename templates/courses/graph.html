@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Visual Knowledge Graph</div>
+    <div style="color: var(--text-muted); font-size: 0.9rem;">Explore relationships between course topics and materials.
+    </div>
+</div>
+
+<div class="card" style="height: 75vh; padding: 0; position: relative; overflow: hidden; background: #f8fafc;">
+    <div id="mynetwork" style="width: 100%; height: 100%;"></div>
+
+    <!-- Legend -->
+    <div
+        style="position: absolute; bottom: 20px; right: 20px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); z-index: 10;">
+        <div
+            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px; color: var(--text-muted);">
+            Legend</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #741e1e;"></div>
+            <span style="font-size: 0.8rem;">Course Topic</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #0ea5e9;"></div>
+            <span style="font-size: 0.8rem;">Learning Material</span>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script type="text/javascript">
+    const graphData = {{ graph_data| safe }};
+
+    const nodes = new vis.DataSet(graphData.nodes.map(n => ({
+        id: n.id,
+        label: n.label,
+        color: n.type === 'topic' ? '#741e1e' : '#0ea5e9',
+        font: { color: n.type === 'topic' ? '#ffffff' : '#334155', size: n.type === 'topic' ? 16 : 12 },
+        shape: n.type === 'topic' ? 'dot' : 'diamond',
+        size: n.type === 'topic' ? 25 : 15
+    })));
+
+    const edges = new vis.DataSet(graphData.links.map(l => ({
+        from: l.source,
+        to: l.target,
+        color: '#cbd5e1',
+        width: 1
+    })));
+
+    const container = document.getElementById('mynetwork');
+    const data = { nodes: nodes, edges: edges };
+    const options = {
+        nodes: {
+            borderWidth: 2,
+            shadow: true
+        },
+        edges: {
+            smooth: {
+                type: 'continuous'
+            }
+        },
+        physics: {
+            stabilization: true,
+            barnesHut: {
+                gravitationalConstant: -2000,
+                springLength: 150
+            }
+        }
+    };
+    const network = new vis.Network(container, data, options);
+
+    network.on("click", function (params) {
+        if (params.nodes.length > 0) {
+            const nodeId = params.nodes[0];
+            if (nodeId.toString().startsWith('m')) {
+                const id = nodeId.toString().substring(1);
+                window.location.href = `/material-detail/${id}/`;
+            }
+        }
+    });
+</script>
+{% endblock %}

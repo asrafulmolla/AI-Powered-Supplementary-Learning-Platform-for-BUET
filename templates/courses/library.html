@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">{{ title }}</div>
+    <div class="search-container" style="flex: 1; max-width: 400px; margin-left: 2rem;">
+        <i class="ri-search-line" style="position: absolute; margin: 12px; color: var(--text-muted);"></i>
+        <input type="text" id="library-search" class="search-input" placeholder="Search in this repository..."
+            style="padding-left: 3rem; width: 100%;">
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;"
+    id="materials-grid">
+    {% for item in materials %}
+    <div class="card material-card" data-title="{{ item.title|lower }}" data-desc="{{ item.description|lower }}"
+        onclick="window.location.href='/material-detail/{{ item.pk }}/'" style="cursor: pointer;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--primary);">
+                {{ item.file_type }}
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">{{ item.created_at|date:"M d, Y" }}</span>
+        </div>
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">{{ item.title }}</h3>
+        <p
+            style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ item.description }}
+        </p>
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--secondary);">{{ item.topic.name }}</span>
+            <a href="/material-detail/{{ item.pk }}/" class="btn-primary"
+                style="padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none;"
+                onclick="event.stopPropagation();">View Details</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <i class="ri-inbox-line" style="font-size: 3rem; color: var(--text-muted);"></i>
+        <h3 style="margin-top: 1rem; color: var(--text-muted);">No materials found in this category.</h3>
+        <p style="margin-top: 0.5rem; color: var(--text-muted);">Try generating new materials using the AI Generator.
+        </p>
+        <a href="/generator-ui/" class="btn-primary"
+            style="display: inline-block; margin-top: 1.5rem; text-decoration: none;">Go to Generator</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    document.getElementById('library-search').addEventListener('input', function (e) {
+        const term = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.material-card');
+
+        cards.forEach(card => {
+            const title = card.getAttribute('data-title');
+            const desc = card.getAttribute('data-desc');
+            if (title.includes(term) || desc.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<style>
+    .material-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .material-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}

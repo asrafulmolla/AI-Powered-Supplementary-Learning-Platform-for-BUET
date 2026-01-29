@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">AI Smart Flashcards</div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <select id="topic-select" class="search-input"
+            style="max-width: 250px; background: white; border: 1px solid var(--border-color);">
+            <option value="">Select a Topic...</option>
+            {% for topic in topics %}
+            <option value="{{ topic.id }}">{{ topic.name }}</option>
+            {% endfor %}
+        </select>
+        <button id="generate-cards-btn" class="btn-primary">Generate Cards</button>
+    </div>
+</div>
+
+<div id="loading" style="display: none; text-align: center; padding: 4rem;">
+    <i class="ri-loader-4-line ri-spin" style="font-size: 3rem; color: var(--primary);"></i>
+    <p style="margin-top: 1rem; color: var(--text-muted);">AI is curating your revision cards...</p>
+</div>
+
+<div id="flashcard-container" style="display: none; perspective: 1000px; max-width: 600px; margin: 2rem auto;">
+    <div id="card"
+        style="width: 100%; height: 350px; position: relative; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
+        <!-- Front -->
+        <div
+            style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; border-radius: 20px; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; padding: 2rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div id="card-front" style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">Select a topic
+                and generate cards!</div>
+            <div style="position: absolute; bottom: 15px; font-size: 0.75rem; color: var(--text-muted);">Click to flip
+            </div>
+        </div>
+        <!-- Back -->
+        <div
+            style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--bg-dark); border-radius: 20px; border: 2px solid var(--secondary); display: flex; align-items: center; justify-content: center; padding: 2rem; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: rotateY(180deg);">
+            <div id="card-back" style="font-size: 1.1rem; line-height: 1.6; color: var(--text-main);"></div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div style="display: flex; justify-content: center; align-items: center; gap: 2rem; margin-top: 2rem;">
+        <button id="prev-btn" class="btn-primary" style="background: var(--text-muted); padding: 0.8rem 1.5rem;"><i
+                class="ri-arrow-left-line"></i> Prev</button>
+        <span id="counter" style="font-weight: 700; color: var(--text-muted);">Card 0 of 0</span>
+        <button id="next-btn" class="btn-primary" style="padding: 0.8rem 1.5rem;">Next <i
+                class="ri-arrow-right-line"></i></button>
+    </div>
+</div>
+
+<script>
+    let currentCards = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    const card = document.getElementById('card');
+    const generateBtn = document.getElementById('generate-cards-btn');
+    const topicSelect = document.getElementById('topic-select');
+    const loading = document.getElementById('loading');
+    const container = document.getElementById('flashcard-container');
+
+    card.addEventListener('click', () => {
+        isFlipped = !isFlipped;
+        card.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+    });
+
+    generateBtn.addEventListener('click', async () => {
+        const topicId = topicSelect.value;
+        if (!topicId) return alert('Please select a topic first!');
+
+        loading.style.display = 'block';
+        container.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/flashcards/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ topic_id: topicId })
+            });
+            const data = await response.json();
+            currentCards = data.cards;
+            currentIndex = 0;
+            updateCard();
+            loading.style.display = 'none';
+            container.style.display = 'block';
+        } catch (err) {
+            console.error(err);
+            alert('Failed to generate cards.');
+            loading.style.display = 'none';
+        }
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function updateCard() {
+        if (currentCards.length === 0) return;
+        isFlipped = false;
+        card.style.transform = 'rotateY(0deg)';
+
+        const c = currentCards[currentIndex];
+        document.getElementById('card-front').innerText = c.front;
+        document.getElementById('card-back').innerText = c.back;
+        document.getElementById('counter').innerText = `Card ${currentIndex + 1} of ${currentCards.length}`;
+    }
+
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCard();
+        }
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+        if (currentIndex < currentCards.length - 1) {
+            currentIndex++;
+            updateCard();
+        }
+    });
+</script>
+{% endblock %}

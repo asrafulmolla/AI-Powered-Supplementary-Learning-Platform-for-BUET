@@ -2,7 +2,17 @@
 
 {% block content %}
 <div class="chat-wrapper">
-    <div class="page-title">AI Assistant</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div class="page-title" style="margin-bottom: 0;">AI Assistant</div>
+        <div
+            style="display: flex; align-items: center; gap: 10px; background: #fff; padding: 0.5rem 1rem; border-radius: 30px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">Bangla Explained</span>
+            <label class="switch">
+                <input type="checkbox" id="bangla-mode">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
 
     <div class="chat-container">
         <div class="chat-messages" id="chat-messages">

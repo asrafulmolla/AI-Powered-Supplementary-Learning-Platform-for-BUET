@@ -1,78 +1,199 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="header">
-    <div class="page-title">Material Generator</div>
-</div>
-
-<div class="card" style="max-width: 800px; margin: 0 auto;">
-    <div class="card-header">
-        <h3>Create New Learning Content</h3>
-    </div>
-    <div style="margin-bottom: 2rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Topic or Concept</label>
-        <input type="text" id="topic-input" class="search-input" placeholder="e.g., Binary Search Trees"
-            style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px;">
-    </div>
-
-    <div style="margin-bottom: 2rem;">
-        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Material Type</label>
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">AI Content
+                Architecture</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Generate high-fidelity academic materials using
+                RAG-powered intelligence.</p>
+        </div>
         <div style="display: flex; gap: 1rem;">
-            <button class="type-btn active" data-type="NOTE">
-                <i class="ri-book-read-line"></i> Reading Note
-            </button>
-            <button class="type-btn" data-type="CODE">
-                <i class="ri-code-s-slash-line"></i> Lab Code
-            </button>
-            <button class="type-btn" data-type="SLIDE">
-                <i class="ri-slideshow-line"></i> Slide Outline
-            </button>
+            <div style="text-align: right;">
+                <div
+                    style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                    System Status</div>
+                <div style="display: flex; align-items: center; gap: 6px; color: #16a34a; font-weight: 600;">
+                    <span
+                        style="width: 8px; height: 8px; background: #16a34a; border-radius: 50%; display: inline-block;"></span>
+                    Gemini-Pro Online
+                </div>
+            </div>
         </div>
     </div>
 
-    <button id="generate-btn" class="btn-primary" style="width: 100%;">
-        <i class="ri-magic-line"></i> Generate Material
-    </button>
-</div>
+    <div style="display: grid; grid-template-columns: 350px 1fr; gap: 2.5rem;">
+        <!-- Configuration Side -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="card"
+                style="padding: 2rem; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                    <i class="ri-settings-3-line" style="color: var(--secondary);"></i> Parameters
+                </h3>
 
-<div id="result-area" style="max-width: 800px; margin: 2rem auto; display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h3>Generated Content</h3>
-            <div id="validation-badge" class="badge" style="display: none;"></div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Academic
+                        Topic</label>
+                    <input type="text" id="topic-input" placeholder="e.g. Red-Black Trees"
+                        style="width: 100%; padding: 0.85rem; border-radius: 12px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem; outline: none; transition: all 0.2s;">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Output
+                        Architecture</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="type-btn active" data-type="NOTE">
+                            <i class="ri-article-line"></i> Technical Note
+                        </button>
+                        <button class="type-btn" data-type="CODE">
+                            <i class="ri-code-box-line"></i> Executable Code
+                        </button>
+                        <button class="type-btn" data-type="SLIDE">
+                            <i class="ri-presentation-line"></i> Lecture Slides
+                        </button>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn-primary"
+                    style="width: 100%; padding: 1rem; border-radius: 14px; font-weight: 700; background: linear-gradient(135deg, var(--primary), #a52a2a); border: none; box-shadow: 0 10px 20px rgba(116, 30, 30, 0.2);">
+                    <i class="ri-magic-line"></i> Synthesize Content
+                </button>
+            </div>
+
+            <div class="card"
+                style="padding: 1.5rem; border-radius: 20px; background: #fafafa; border: 1px dashed var(--border-color);">
+                <h4 style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-muted);">Generation Tips</h4>
+                <ul style="padding-left: 1.2rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+                    <li>Be specific about sub-topics</li>
+                    <li>Code generation includes comments</li>
+                    <li>Slides include visual cues</li>
+                </ul>
+            </div>
         </div>
-        <div id="output-content"
-            style="padding: 1rem; background: #f8fafc; border-radius: 8px; font-family: monospace; white-space: pre-wrap;">
+
+        <!-- Output Main -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div id="loading-state"
+                style="display: none; height: 100%; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; border-radius: 24px;">
+                <div class="loader-circle"></div>
+                <p style="margin-top: 1.5rem; font-weight: 600; color: var(--text-muted);">AI is processing academic
+                    context...</p>
+            </div>
+
+            <div id="result-area" style="display: none;">
+                <div class="card"
+                    style="border-radius: 24px; padding: 0.5rem; overflow: hidden; border: 1px solid var(--border-color); background: white;">
+                    <div
+                        style="padding: 1.5rem 2rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1.2rem;">Generated Blueprint</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <div id="validation-badge" class="badge" style="display: none;"></div>
+                            <button class="btn-icon" title="Copy to Clipboard"><i
+                                    class="ri-clipboard-line"></i></button>
+                            <button class="btn-icon" title="Download Markdown"><i
+                                    class="ri-download-2-line"></i></button>
+                        </div>
+                    </div>
+                    <div id="output-content"
+                        style="padding: 2.5rem; min-height: 500px; line-height: 1.8; font-size: 1rem; color: #334155; max-height: 800px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state"
+                style="height: 100%; min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); border: 2px dashed #e2e8f0; border-radius: 24px; text-align: center; padding: 3rem;">
+                <div
+                    style="width: 100px; height: 100px; background: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                    <i class="ri-brain-line" style="font-size: 3rem; color: #e2e8f0;"></i>
+                </div>
+                <h3 style="color: #94a3b8; font-weight: 700;">No content synthesized yet</h3>
+                <p style="color: #cbd5e1; max-width: 300px; margin: 1rem auto;">Configure types and topics on the left
+                    to start generating academic blueprints.</p>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     .type-btn {
-        flex: 1;
-        padding: 1rem;
-        border: 1px solid var(--border-color);
-        background: white;
-        border-radius: 8px;
+        width: 100%;
+        padding: 0.85rem 1rem;
+        border: 1px solid #f1f5f9;
+        background: #f8fafc;
+        border-radius: 12px;
         cursor: pointer;
         font-weight: 600;
-        color: var(--text-muted);
+        color: #64748b;
         transition: all 0.2s;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .type-btn:hover {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
     }
 
     .type-btn.active {
+        background: white;
+        color: var(--primary);
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(116, 30, 30, 0.1);
+    }
+
+    .btn-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid #f1f5f9;
+        background: white;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
         background: var(--primary);
         color: white;
         border-color: var(--primary);
     }
 
-    .type-btn:hover:not(.active) {
-        background: #f1f5f9;
-        color: var(--text-main);
+    .loader-circle {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f1f5f9;
+        border-top: 4px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    #output-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    #output-content h1,
+    #output-content h2 {
+        color: var(--primary);
+        margin: 2rem 0 1rem;
     }
 </style>
 
@@ -93,62 +214,54 @@
             const topic = document.getElementById('topic-input').value;
             const outputDiv = document.getElementById('output-content');
             const resultArea = document.getElementById('result-area');
+            const emptyState = document.getElementById('empty-state');
+            const loadingState = document.getElementById('loading-state');
             const validBadge = document.getElementById('validation-badge');
 
             if (!topic) return;
 
-            outputDiv.textContent = 'Generating content based on course context...';
-            resultArea.style.display = 'block';
-            validBadge.style.display = 'none';
+            emptyState.style.display = 'none';
+            resultArea.style.display = 'none';
+            loadingState.style.display = 'flex';
 
             try {
                 const response = await fetch('/api/generate/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({ topic, type: selectedType })
                 });
 
                 const data = await response.json();
-                outputDiv.textContent = data.content;
+
+                // Format markdown-like content simply for demo
+                outputDiv.innerHTML = data.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+                if (!outputDiv.innerHTML.startsWith('<p>')) outputDiv.innerHTML = '<p>' + outputDiv.innerHTML + '</p>';
+
+                loadingState.style.display = 'none';
+                resultArea.style.display = 'block';
 
                 if (data.validation) {
                     validBadge.style.display = 'block';
                     if (data.validation.valid) {
-                        validBadge.className = 'badge';
                         validBadge.style.background = '#dcfce7';
                         validBadge.style.color = '#15803d';
-                        validBadge.textContent = '✓ Syntactically Correct';
+                        validBadge.textContent = 'Correct';
                     } else {
-                        validBadge.className = 'badge';
                         validBadge.style.background = '#fee2e2';
                         validBadge.style.color = '#b91c1c';
-                        validBadge.textContent = '⚠ Syntax Errors Found';
+                        validBadge.textContent = 'Syntax Notice';
                     }
                 }
 
             } catch (e) {
-                outputDiv.textContent = 'Error generating content.';
+                loadingState.style.display = 'none';
+                emptyState.style.display = 'flex';
+                alert('Connection error. Please check your Gemini API key configuration.');
             }
         });
-
-        // Helper to get cookie (reusing from app.js if not globally available, but safe to inline)
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
     });
 </script>
 {% endblock %}

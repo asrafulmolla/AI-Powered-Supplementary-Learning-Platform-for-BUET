@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">Material
+                Management</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Upload, organize, and maintain course materials.</p>
+        </div>
+        <a href="{% url 'material-add' %}" class="btn-primary"
+            style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="ri-add-line"></i> Upload New Material
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid" style="margin-bottom: 3rem;">
+        <div class="card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+            <div
+                style="width: 50px; height: 50px; background: #fff1f2; color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                <i class="ri-book-open-line"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
+                    Total Materials</div>
+                <div style="font-size: 1.5rem; font-weight: 800;">{{ materials.count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materials Table -->
+    <div class="card" style="padding: 0; overflow: hidden; border-radius: 20px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color);">
+                    <th style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569;">TITLE</th>
+                    <th style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569;">CATEGORY
+                    </th>
+                    <th style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569;">TYPE</th>
+                    <th style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569;">TOPIC</th>
+                    <th style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569;">WEEK</th>
+                    <th
+                        style="padding: 1.2rem 1.5rem; font-size: 0.85rem; font-weight: 700; color: #475569; text-align: right;">
+                        ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for material in materials %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;"
+                    onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 1.2rem 1.5rem;">
+                        <div style="font-weight: 700; color: var(--text-main);">{{ material.title }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            {{ material.created_at|date:"M d, Y" }}
+                        </div>
+                    </td>
+                    <td style="padding: 1.2rem 1.5rem;">
+                        <span
+                            class="badge {% if material.category == 'THEORY' %}badge-theory{% else %}badge-lab{% endif %}">
+                            {{ material.get_category_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 1.2rem 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                        {{ material.get_file_type_display }}
+                    </td>
+                    <td style="padding: 1.2rem 1.5rem; color: var(--text-main); font-weight: 600;">
+                        {{ material.topic.name|default:"-" }}
+                    </td>
+                    <td style="padding: 1.2rem 1.5rem; color: var(--text-main); font-weight: 600;">
+                        {% if material.week %}Week {{ material.week }}{% else %}-{% endif %}
+                    </td>
+                    <td style="padding: 1.2rem 1.5rem; text-align: right;">
+                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <a href="{% url 'material-edit' material.pk %}" class="btn-icon" title="Edit"><i
+                                    class="ri-edit-line"></i></a>
+                            <a href="{% url 'material-delete' material.pk %}" class="btn-icon" style="color: #dc2626;"
+                                title="Delete"><i class="ri-delete-bin-line"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 4rem; text-align: center; color: var(--text-muted);">
+                        <i class="ri-inbox-line"
+                            style="font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
+                        No materials found. Start by uploading some!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-icon:hover {
+        background: #f8fafc;
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+</style>
+{% endblock %}

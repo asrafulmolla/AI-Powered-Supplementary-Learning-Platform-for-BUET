@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+
+{% block content %}
+<div
+    style="max-width: 450px; margin: 4rem auto; padding: 3rem; background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid var(--border-color);">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div
+            style="width: 70px; height: 70px; background: var(--primary); color: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+            <i class="ri-shield-user-line"></i>
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Access your academic dashboard</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <a href="{% provider_login_url 'google' %}"
+            style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 1rem; background: white; border: 2px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: #1e293b; font-weight: 600; transition: all 0.2s;">
+            <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google"
+                style="width: 20px;">
+            Continue with Google
+        </a>
+
+        <div style="display: flex; align-items: center; margin: 1.5rem 0;">
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            <span
+                style="padding: 0 1rem; color: #94a3b8; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">or</span>
+            <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+        </div>
+
+        <form method="POST" action="{% url 'account_login' %}"
+            style="display: flex; flex-direction: column; gap: 1.2rem;">
+            {% csrf_token %}
+            <div>
+                <label
+                    style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem;">Username</label>
+                <input type="text" name="login" placeholder="Enter your username"
+                    style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
+                    required>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: #475569;">Password</label>
+                    <a href="{% url 'account_reset_password' %}"
+                        style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot
+                        password?</a>
+                </div>
+                <input type="password" name="password" placeholder="••••••••"
+                    style="width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem;"
+                    required>
+            </div>
+
+            <button type="submit" class="btn-primary"
+                style="padding: 1rem; border-radius: 12px; font-size: 1rem; margin-top: 1rem;">
+                Sign In
+            </button>
+        </form>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+        Don't have an account? <a href="{% url 'account_signup' %}"
+            style="color: var(--primary); font-weight: 700; text-decoration: none;">Register now</a>
+    </div>
+</div>
+{% endblock %}
