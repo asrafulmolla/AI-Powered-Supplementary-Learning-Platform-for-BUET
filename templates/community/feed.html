@@ -76,8 +76,8 @@
             </div>
             <div style="margin-bottom: 1rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Your Name</label>
-                <input type="text" id="post-author" value="Student" class="search-input"
-                    style="background: #f8fafc; border: 1px solid var(--border-color); width: 100%; border-radius: 8px;">
+                <input type="text" id="post-author" value="{{ user.username }}" readonly class="search-input"
+                    style="background: #f1f5f9; border: 1px solid var(--border-color); width: 100%; border-radius: 8px; cursor: not-allowed;">
             </div>
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted);">Content</label>

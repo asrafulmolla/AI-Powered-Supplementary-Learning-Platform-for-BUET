@@ -35,7 +35,12 @@
         id: n.id,
         label: n.label,
         color: n.type === 'topic' ? '#741e1e' : '#0ea5e9',
-        font: { color: n.type === 'topic' ? '#ffffff' : '#334155', size: n.type === 'topic' ? 16 : 12 },
+        font: {
+            color: n.type === 'topic' ? '#334155' : '#1e293b',
+            size: n.type === 'topic' ? 16 : 12,
+            background: 'rgba(255, 255, 255, 0.7)',
+            vadjust: -35
+        },
         shape: n.type === 'topic' ? 'dot' : 'diamond',
         size: n.type === 'topic' ? 25 : 15
     })));

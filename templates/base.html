@@ -66,6 +66,9 @@
             <a href="/quiz-ui/" class="nav-link {% if '/quiz-ui' in request.path %}active{% endif %}">
                 <i class="ri-question-answer-line"></i> AI Quiz
             </a>
+            <a href="/community/feed/" class="nav-link {% if '/community' in request.path %}active{% endif %}">
+                <i class="ri-team-line"></i> Community
+            </a>
 
             {% if user.is_authenticated and user.role != 'STUDENT' or user.is_superuser %}
             <div
