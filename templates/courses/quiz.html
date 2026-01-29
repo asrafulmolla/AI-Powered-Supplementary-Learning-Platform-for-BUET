@@ -62,8 +62,14 @@
         <p style="font-size: 1.5rem; font-weight: 800; color: var(--primary);" id="final-score">Score: 0/0</p>
         <button onclick="location.reload()" class="btn-primary" style="margin-top: 2rem; width: 100%;">Try Another
             Topic</button>
+        <button id="download-quiz-pdf" class="btn-primary"
+            style="margin-top: 1rem; width: 100%; background: white; color: var(--text-main); border: 1px solid var(--border-color);">
+            <i class="ri-file-pdf-line"></i> Download Quiz Report
+        </button>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
     let currentQuiz = [];
@@ -197,6 +203,47 @@
         }
         return cookieValue;
     }
+
+    document.getElementById('download-quiz-pdf').addEventListener('click', () => {
+        if (!currentQuiz.length) return;
+
+        const topic = document.getElementById('quiz-topic').value || 'Topic';
+
+        // Build a clean report container in memory
+        const report = document.createElement('div');
+        report.style.padding = '40px';
+        report.style.fontFamily = 'Inter, sans-serif';
+
+        report.innerHTML = `
+            <h1 style="color: #741e1e; font-size: 24px;">Quiz Performance Report</h1>
+            <p style="font-size: 16px;"><strong>Topic:</strong> ${topic}</p>
+            <p style="font-size: 16px;"><strong>Score:</strong> ${score} / ${currentQuiz.length}</p>
+            <hr style="border: 1px solid #eee; margin: 20px 0;">
+            <div id="quiz-summary"></div>
+        `;
+
+        const summary = report.querySelector('#quiz-summary');
+        currentQuiz.forEach((q, i) => {
+            const item = document.createElement('div');
+            item.style.marginBottom = '25px';
+            item.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px;">Q${i + 1}: ${q.question}</div>
+                <div style="color: #16a34a; font-size: 14px;">Correct Answer: ${q.answer}</div>
+                <div style="color: #64748b; font-size: 13px; font-style: italic; margin-top: 5px;">Explanation: ${q.explanation}</div>
+            `;
+            summary.appendChild(item);
+        });
+
+        const opt = {
+            margin: [15, 15],
+            filename: `quiz_report_${topic.replace(/\s+/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(report).save();
+    });
 </script>
 
 <style>
