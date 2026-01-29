@@ -35,4 +35,7 @@ class DigitizationService:
             
             return response.text.strip()
         except Exception as e:
-            return f"Digitization error: {str(e)}"
+            error_msg = str(e)
+            if "429" in error_msg:
+                return "⚠️ AI Quota Exceeded (429): The free tier limit has been reached. Please wait 1 minute and try again."
+            return f"Digitization error: {error_msg}"

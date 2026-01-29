@@ -45,6 +45,14 @@ class VideoService:
                 
             return json.loads(raw_text)
         except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg:
+                return {
+                    "title": "Quota Exceeded",
+                    "duration": "0:00",
+                    "scenes": [],
+                    "error": "⚠️ AI Quota Exceeded (429): The free tier limit has been reached. Please wait 1 minute and try again."
+                }
             return {
                 "title": f"Video Explanation: {topic}",
                 "duration": "1:30",
@@ -52,5 +60,5 @@ class VideoService:
                     {"time": "0:00-0:30", "visual": "Intro Slide", "audio": f"Hi, let's learn about {topic}."},
                     {"time": "0:30-1:30", "visual": "Conceptual Diagram", "audio": "This is how part A connects to part B."}
                 ],
-                "error": str(e)
+                "error": error_msg
             }

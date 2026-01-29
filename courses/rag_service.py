@@ -32,7 +32,7 @@ class RAGService:
 
     def query_ai(self, prompt):
         """
-        Helper to call Google Gemini API
+        Helper to call Google Gemini API with improved error handling.
         """
         if not self.model:
             return "Gemini API Key not configured. Please add GEMINI_API_KEY to settings.py."
@@ -41,7 +41,10 @@ class RAGService:
             response = self.model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            return f"Error contacting Gemini Service: {str(e)}"
+            error_msg = str(e)
+            if "429" in error_msg:
+                return "⚠️ AI Quota Exceeded (429): The free tier limit has been reached. Please wait 30-60 seconds and try again, or use a different API key."
+            return f"Error contacting Gemini Service: {error_msg}"
 
     def search(self, query):
         """
