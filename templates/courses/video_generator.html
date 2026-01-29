@@ -13,7 +13,7 @@
             <h1
                 style="font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1.1; margin-bottom: 1.5rem;">
                 AI-Driven Video <span
-                    style="background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Symphony</span>
+                    style="background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Symphony</span>
             </h1>
             <p style="color: var(--text-muted); font-size: 1.2rem; line-height: 1.6;">Transform complex academic textual
                 content into structured cinematic video scripts for lecture summaries.</p>
@@ -57,7 +57,7 @@
                 <div id="vid-duration" style="font-size: 0.9rem; color: #64748b; font-weight: 600; margin-top: 4px;">
                     EST. DURATION: 2:45 MIN</div>
             </div>
-            <button class="btn-primary"
+            <button id="export-storyboard-btn" class="btn-primary"
                 style="background: white; color: var(--text-main); border: 2px solid #e2e8f0; box-shadow: none;">
                 <i class="ri-file-download-line"></i> Export Storyboard
             </button>
@@ -134,6 +134,8 @@
 </style>
 
 <script>
+    let lastGeneratedData = null;
+
     document.getElementById('generate-video-btn').addEventListener('click', async () => {
         const topic = document.getElementById('video-topic').value;
         if (!topic) return;
@@ -159,6 +161,7 @@
             });
 
             const data = await response.json();
+            lastGeneratedData = data;
 
             document.getElementById('vid-title').textContent = data.title;
             document.getElementById('vid-duration').textContent = `EST. DURATION: ${data.duration}`;
@@ -196,6 +199,32 @@
             btn.disabled = false;
             btn.innerHTML = '<i class="ri-play-list-add-line"></i> Generate Script';
         }
+    });
+
+    document.getElementById('export-storyboard-btn').addEventListener('click', () => {
+        if (!lastGeneratedData) return;
+
+        let content = `VIDEO STORYBOARD: ${lastGeneratedData.title}\n`;
+        content += `ESTIMATED DURATION: ${lastGeneratedData.duration}\n`;
+        content += `====================================================\n\n`;
+
+        lastGeneratedData.scenes.forEach((scene, index) => {
+            content += `SCENE ${index + 1} (${scene.time})\n`;
+            content += `----------------------------------------------------\n`;
+            content += `VISUAL: ${scene.visual}\n\n`;
+            content += `VOICEOVER: "${scene.audio}"\n`;
+            content += `\n\n`;
+        });
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${lastGeneratedData.title.replace(/\s+/g, '_')}_storyboard.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
 </script>
 {% endblock %}
