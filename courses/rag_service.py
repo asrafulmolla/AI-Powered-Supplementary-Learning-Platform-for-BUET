@@ -28,20 +28,57 @@ class RAGService:
 
     def search(self, query):
         """
-        Semantic-like search using keywords.
+        Intelligent search with Keyword Expansion and Syntax-Aware filtering.
         """
-        words = query.split()
-        stop_words = {'tell', 'me', 'about', 'what', 'is', 'the', 'how', 'to', 'explain'}
-        keywords = [w for w in words if w.lower() not in stop_words]
-        
-        if not keywords:
-            return CourseMaterial.objects.none()
+        # Part 1: Semantic Expansion (ask Gemini for keywords if it's a complex query)
+        expanded_keywords = [query]
+        if len(query.split()) > 3:
+            expansion_prompt = f"Given the educational query '{query}', list 5-7 core technical keywords or synonyms that would help find relevant course materials or code snippets. Return ONLY keywords separated by commas."
+            expanded_text = self.query_ai(expansion_prompt)
+            if "Error" not in expanded_text:
+                expanded_keywords.extend([k.strip() for k in expanded_text.split(',')])
+        else:
+            # For small queries, strip stop words for better DB matching
+            stop_words = {'tell', 'me', 'about', 'what', 'is', 'the', 'how', 'to', 'explain', 'simply', 'write'}
+            words = query.split()
+            keywords = [w for w in words if w.lower() not in stop_words]
+            if keywords:
+                expanded_keywords.extend(keywords)
 
+        # Part 2: Syntax-Aware Detection
+        # If query contains programming keywords, prioritize 'CODE' file types
+        code_indicators = {'code', 'def', 'function', 'implementation', 'syntax', 'error', 'debug', 'class', 'struct', 'programming'}
+        is_code_search = any(word.lower() in code_indicators for word in query.split())
+
+        # Part 3: Search Execution
         q_objects = Q()
-        for word in keywords:
-            q_objects |= Q(title__icontains=word) | Q(description__icontains=word) | Q(text_content__icontains=word) | Q(tags__icontains=word)
+        for word in expanded_keywords:
+            if len(word) > 2:
+                q_objects |= Q(title__icontains=word) | Q(description__icontains=word) | Q(text_content__icontains=word) | Q(tags__icontains=word)
 
-        return CourseMaterial.objects.filter(q_objects).distinct()
+        results = CourseMaterial.objects.filter(q_objects).distinct()
+
+        # Part 4: Ranking/Prioritization
+        results_list = list(results[:20])
+        if is_code_search:
+            # Sort CODE materials to the top
+            results_list = sorted(results_list, key=lambda x: 0 if x.file_type == 'CODE' else 1)
+        
+        return results_list[:10]
+
+    def get_context_with_excerpts(self, results):
+        context_docs = []
+        for item in results:
+            content = item.text_content or item.description
+            # Create a small excerpt (first 300 chars)
+            excerpt = content[:300] + "..." if len(content) > 300 else content
+            context_docs.append({
+                "title": item.title,
+                "excerpt": excerpt,
+                "type": item.get_file_type_display(),
+                "id": item.id
+            })
+        return context_docs
 
     def get_context_string(self, results):
         context_docs = []
@@ -52,29 +89,33 @@ class RAGService:
 
     def generate_answer(self, query):
         """
-        Part 2 & 5: Conversational RAG.
+        Part 2: Intelligent RAG-Based Search & Answer.
         """
         results = self.search(query)
-        context = self.get_context_string(results)
+        excerpts = self.get_context_with_excerpts(results)
+        
+        # Build context for LLM
+        context_str = "\n\n".join([f"Source: {res['title']}\nContent: {res['excerpt']}" for res in excerpts])
         
         prompt = f"""You are 'EduBot', a university academic assistant. 
-Use the provided Course Materials context to answer the student's question accurately.
+Use the provided Course Materials context (which are snippets) to answer the student's question accurately.
 
 Context:
-{context if context else 'No specific materials found.'}
+{context_str if context_str else 'No specific materials found in the local library.'}
 
 Question: {query}
 
 Instructions:
-- If context is found, summarize it accurately and cite the source titles.
-- If no materials are relevant, answer based on general knowledge but clarify it's not from the course.
-- Keep the tone helpful and professional."""
+- If relevant context is found, summarize it and cite the source titles.
+- If it's a coding question, provide a structured explanation and code snippet if possible.
+- If no materials are relevant, answer based on general engineering knowledge but clarify it's not from the course database.
+- Keep the tone helpful, professional, and technical."""
 
         answer = self.query_ai(prompt)
         
         return {
             "answer": answer,
-            "sources": [{"title": r.title, "id": r.id} for r in results[:5]]
+            "sources": excerpts # Returning full excerpt data for the UI
         }
 
     def generate_learning_material(self, topic, material_type):
