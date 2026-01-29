@@ -1,5 +1,6 @@
 import google.generativeai as genai
 import json
+import requests
 from django.conf import settings
 from .models import CourseMaterial
 from django.db.models import Q
@@ -12,6 +13,22 @@ class RAGService:
             self.model = genai.GenerativeModel('gemini-2.5-flash')
         else:
             self.model = None
+
+    def get_wikipedia_context(self, query):
+        """
+        External context tool: simulating an MCP server wrapper over Wikipedia.
+        """
+        try:
+            url = f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro&explaintext&redirects=1&titles={query}"
+            response = requests.get(url, timeout=5)
+            data = response.json()
+            pages = data['query']['pages']
+            page_id = next(iter(pages))
+            if page_id != "-1":
+                return pages[page_id]['extract'][:1000]
+            return None
+        except:
+            return None
 
     def query_ai(self, prompt):
         """
@@ -89,48 +106,61 @@ class RAGService:
 
     def generate_answer(self, query):
         """
-        Part 2: Intelligent RAG-Based Search & Answer.
+        Part 2: Intelligent RAG-Based Search & Answer with External Context.
         """
         results = self.search(query)
         excerpts = self.get_context_with_excerpts(results)
         
-        # Build context for LLM
-        context_str = "\n\n".join([f"Source: {res['title']}\nContent: {res['excerpt']}" for res in excerpts])
+        # Build internal context
+        internal_context = "\n\n".join([f"Source: {res['title']}\nContent: {res['excerpt']}" for res in excerpts])
         
-        prompt = f"""You are 'EduBot', a university academic assistant. 
-Use the provided Course Materials context (which are snippets) to answer the student's question accurately.
+        # Part 3 Requirement: Fetch external context if needed
+        external_context = ""
+        if len(excerpts) < 2:
+            wiki = self.get_wikipedia_context(query)
+            if wiki:
+                external_context = f"External Source (Wikipedia):\n{wiki}"
 
-Context:
-{context_str if context_str else 'No specific materials found in the local library.'}
+        prompt = f"""You are 'EduBot', a university academic assistant. 
+Use the following context to answer the student's question accurately.
+
+Internal Course Materials:
+{internal_context if internal_context else 'No specific materials found in the internal library.'}
+
+{external_context if external_context else ''}
 
 Question: {query}
 
 Instructions:
-- If relevant context is found, summarize it and cite the source titles.
-- If it's a coding question, provide a structured explanation and code snippet if possible.
-- If no materials are relevant, answer based on general engineering knowledge but clarify it's not from the course database.
+- Prioritize internal course materials if they are relevant.
+- Use external context only for gaps or additional depth.
+- Cite sources clearly (Internal Title or Wikipedia).
+- If it's a coding question, provide a structured explanation.
 - Keep the tone helpful, professional, and technical."""
 
         answer = self.query_ai(prompt)
         
         return {
             "answer": answer,
-            "sources": excerpts # Returning full excerpt data for the UI
+            "sources": excerpts 
         }
 
     def generate_learning_material(self, topic, material_type):
         """
-        Part 3: Generated Learning Materials.
+        Part 3: Generated Learning Materials using Internal & External Context.
         """
         results = self.search(topic)
-        context_str = self.get_context_string(results)
+        internal_context = self.get_context_string(results)
+        external_context = self.get_wikipedia_context(topic) or "No external data found."
         
+        full_context = f"INTERNAL COURSE CONTEXT:\n{internal_context}\n\nEXTERNAL ENCYCLOPEDIC CONTEXT:\n{external_context}"
+
         if material_type == 'CODE':
-            prompt = f"Write a clean, commented Python implementation for '{topic}'. Use the following course context if relevant:\n{context_str}\n\nOutput only the code, no markdown blocks."
+            prompt = f"Write a clean, commented Python implementation for '{topic}'. Ground your code in this context:\n{full_context}\n\nOutput only the code, no markdown blocks."
         elif material_type == 'NOTE':
-            prompt = f"Create structured study notes (Markdown) for '{topic}'. Use this course context:\n{context_str}"
+            prompt = f"Create structured study notes (Markdown) for '{topic}'. Use both internal and external context for a comprehensive guide:\n{full_context}"
         else:
-            prompt = f"Outline a 5-slide presentation for '{topic}'. Include content for each slide. Context:\n{context_str}"
+            prompt = f"Outline a 5-slide presentation for '{topic}'. Include content for each slide. Context:\n{full_context}"
 
         content = self.query_ai(prompt)
         

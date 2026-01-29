@@ -104,7 +104,7 @@ class ChatUIView(StudentRequiredMixin, TemplateView):
 class GeneratorUIView(InstructorRequiredMixin, TemplateView):
     template_name = "courses/generator.html"
 
-class VideoGeneratorUIView(InstructorRequiredMixin, TemplateView):
+class VideoGeneratorUIView(StudentRequiredMixin, TemplateView):
     template_name = "courses/video_generator.html"
 
 class QuizUIView(StudentRequiredMixin, TemplateView):
@@ -179,14 +179,14 @@ class FlashcardGeneratorAPI(APIView):
         cards = rag.generate_flashcards(topic.name)
         return Response({"cards": cards})
 
-class DigitizerUIView(InstructorRequiredMixin, TemplateView):
+class DigitizerUIView(StudentRequiredMixin, TemplateView):
     template_name = "courses/digitizer.html"
 
 from .digitization import DigitizationService
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class DigitizeNoteView(APIView):
-    permission_classes = [IsInstructor]
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
@@ -199,7 +199,7 @@ class DigitizeNoteView(APIView):
         return Response({"content": result})
 
 class VideoGeneratorView(APIView):
-    permission_classes = [IsInstructor]
+    permission_classes = [permissions.IsAuthenticated]
     def post(self, request):
         topic = request.data.get('topic')
         if not topic:

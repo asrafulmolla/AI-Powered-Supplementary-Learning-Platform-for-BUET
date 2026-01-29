@@ -56,6 +56,16 @@
             <a href="/chat-ui/" class="nav-link {% if '/chat-ui' in request.path %}active{% endif %}">
                 <i class="ri-message-3-line"></i> AI Chat
             </a>
+            <a href="/digitizer-ui/" class="nav-link {% if '/digitizer-ui' in request.path %}active{% endif %}">
+                <i class="ri-quill-pen-line"></i> Note Digitizer
+            </a>
+            <a href="/video-generator-ui/"
+                class="nav-link {% if '/video-generator-ui' in request.path %}active{% endif %}">
+                <i class="ri-video-line"></i> Video Gen
+            </a>
+            <a href="/quiz-ui/" class="nav-link {% if '/quiz-ui' in request.path %}active{% endif %}">
+                <i class="ri-question-answer-line"></i> AI Quiz
+            </a>
 
             {% if user.is_authenticated and user.role != 'STUDENT' or user.is_superuser %}
             <div
@@ -68,18 +78,7 @@
             <a href="/generator-ui/" class="nav-link {% if '/generator-ui' in request.path %}active{% endif %}">
                 <i class="ri-magic-line"></i> Materials Gen
             </a>
-            <a href="/digitizer-ui/" class="nav-link {% if '/digitizer-ui' in request.path %}active{% endif %}">
-                <i class="ri-quill-pen-line"></i> Note Digitizer
-            </a>
-            <a href="/video-generator-ui/"
-                class="nav-link {% if '/video-generator-ui' in request.path %}active{% endif %}">
-                <i class="ri-video-line"></i> Video Gen
-            </a>
             {% endif %}
-
-            <a href="/quiz-ui/" class="nav-link {% if '/quiz-ui' in request.path %}active{% endif %}">
-                <i class="ri-question-answer-line"></i> AI Quiz
-            </a>
 
             <div
                 style="margin: 1.5rem 0 0.5rem 1rem; font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">
